@@ -1,16 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Text, Alert, FlatList, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text, Alert, StyleSheet } from 'react-native';
 import { supabase } from '../Services/supabase';
 
 export default function SinginScreen() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [usuarios, setUsuarios] = useState([]);
+
+  const emailValido = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
 
   async function cadastrarUsuario() {
     if (!nome || !email || !senha) {
       Alert.alert('Preencha todos os campos!');
+      return;
+    }
+
+    if (!emailValido(email)) {
+      Alert.alert('Digite um email válido!');
       return;
     }
 
@@ -40,22 +49,8 @@ export default function SinginScreen() {
       setNome('');
       setEmail('');
       setSenha('');
-      buscarUsuarios();
     }
   }
-
-  async function buscarUsuarios() {
-    const { data, error } = await supabase.from('usuarios').select('*').order('nome');
-    if (error) {
-      Alert.alert('Erro ao buscar usuários', error.message);
-    } else {
-      setUsuarios(data);
-    }
-  }
-
-  useEffect(() => {
-    buscarUsuarios();
-  }, []);
 
   return (
     <View style={styles.container}>
@@ -84,18 +79,6 @@ export default function SinginScreen() {
       />
 
       <Button title="Cadastrar" onPress={cadastrarUsuario} />
-
-      <Text style={styles.subtitle}>Usuários cadastrados:</Text>
-
-      <FlatList
-        data={usuarios}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.usuarioItem}>
-            <Text>{item.nome} - {item.email}</Text>
-          </View>
-        )}
-      />
     </View>
   );
 }
@@ -109,11 +92,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
-  },
-  subtitle: { marginTop: 30, fontSize: 18, fontWeight: 'bold' },
-  usuarioItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
   },
 });
