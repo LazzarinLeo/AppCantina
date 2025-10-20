@@ -1,0 +1,77 @@
+{
+    "produtos": [
+      {
+        "id": 1,
+        "nome": "Pão de Queijo",
+        "preco": 3.50,
+        "imagem": "https://cdn.pixabay.com/photo/2021/09/07/20/53/cheese-bread-6605091_1280.jpg"
+      },
+      {
+        "id": 2,
+        "nome": "Coxinha de Frango",
+        "preco": 5.00,
+        "imagem": "https://cdn.pixabay.com/photo/2022/06/06/12/12/coxinha-7246248_1280.jpg"
+      },
+      {
+        "id": 3,
+        "nome": "Empada de Frango",
+        "preco": 4.50,
+        "imagem": "https://cdn.pixabay.com/photo/2022/10/24/17/37/empada-7544028_1280.jpg"
+      },
+      {
+        "id": 4,
+        "nome": "Sanduíche Natural",
+        "preco": 6.00,
+        "imagem": "https://cdn.pixabay.com/photo/2016/03/05/22/22/sandwich-1238615_1280.jpg"
+      },
+      {
+        "id": 5,
+        "nome": "Bolo de Chocolate",
+        "preco": 4.00,
+        "imagem": "https://cdn.pixabay.com/photo/2017/05/07/08/56/cake-2292351_1280.jpg"
+      },
+      {
+        "id": 6,
+        "nome": "Suco de Laranja",
+        "preco": 3.00,
+        "imagem": "https://cdn.pixabay.com/photo/2016/02/19/11/30/orange-juice-1201127_1280.jpg"
+      },
+      {
+        "id": 7,
+        "nome": "Refrigerante Lata",
+        "preco": 4.00,
+        "imagem": "https://cdn.pixabay.com/photo/2017/08/07/18/20/coca-cola-2604138_1280.jpg"
+      },
+      {
+        "id": 8,
+        "nome": "Água Mineral",
+        "preco": 2.50,
+        "imagem": "https://cdn.pixabay.com/photo/2017/08/10/08/09/bottle-2618816_1280.jpg"
+      },
+      {
+        "id": 9,
+        "nome": "Pastel de Carne",
+        "preco": 5.50,
+        "imagem": "https://cdn.pixabay.com/photo/2022/05/11/19/32/pastel-7190454_1280.jpg"
+      },
+      {
+        "id": 10,
+        "nome": "Pizza de Mussarela (fatia)",
+        "preco": 6.00,
+        "imagem": "https://cdn.pixabay.com/photo/2017/12/09/08/18/pizza-3007395_1280.jpg"
+      },
+      {
+        "id": 11,
+        "nome": "Brigadeiro",
+        "preco": 2.00,
+        "imagem": "https://cdn.pixabay.com/photo/2020/09/10/21/17/brigadeiro-5561052_1280.jpg"
+      },
+      {
+        "id": 12,
+        "nome": "Pipoca Doce",
+        "preco": 3.00,
+        "imagem": "https://cdn.pixabay.com/photo/2016/03/05/19/37/popcorn-1239154_1280.jpg"
+      }
+    ]
+  }
+  
