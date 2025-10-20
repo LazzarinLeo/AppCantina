@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { Text, View, FlatList, StyleSheet, SafeAreaView, Image } from 'react-native';
+import produtosData from '../Services/Mock.json';
 
 export const HomeScreen = ({ navigation }) => {
   return (
@@ -8,16 +9,19 @@ export const HomeScreen = ({ navigation }) => {
 
         <Text style={styles.title}>Cantina Escolar</Text>
 
-        <ScrollView style={styles.Menu} contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.item}>Pão de queijo</Text>
-          <Text style={styles.item}>Coxinha</Text>
-          <Text style={styles.item}>Suco de laranja</Text>
-          <Text style={styles.item}>Refrigerante</Text>
-          <Text style={styles.item}>Sanduíche natural</Text>
-          <Text style={styles.item}>Pastel</Text>
-          <Text style={styles.item}>Bolo de chocolate</Text>
-          <Text style={styles.item}>Água mineral</Text>
-        </ScrollView>
+        <FlatList
+          data={produtosData.produtos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Image source={{ uri: item.imagem }} style={styles.imagem} />
+              <View style={styles.info}>
+                <Text style={styles.nome}>{item.nome}</Text>
+                <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
+              </View>
+            </View>
+          )}
+        />
 
       </View>
     </SafeAreaView>
@@ -35,17 +39,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 30,
   },
-  Menu: {
-    width: '100%',
-    height: '70%', // controla o espaço do scroll
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    marginTop: 20,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -53,11 +46,37 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-  item: {
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    marginVertical: 8,
+    marginHorizontal: 16,
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    padding: 10,
+    alignItems: 'center',
+  },
+  imagem: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  info: {
+    marginLeft: 15,
+    flex: 1,
+  },
+  nome: {
     fontSize: 18,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-    color: '#4E342E',
+    fontWeight: 'bold',
+    color: '#6D4C41',
+  },
+  preco: {
+    fontSize: 16,
+    color: '#FFA726',
+    marginTop: 4,
   },
 });
