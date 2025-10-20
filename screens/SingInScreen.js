@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button, Text, Alert, FlatList, StyleSheet } from 'react-native';
-import { supabase } from './Services/supabase';
+import { supabase } from '../Services/supabase';
 
 export default function SinginScreen() {
   const [nome, setNome] = useState('');
