@@ -12,15 +12,19 @@ export const HomeScreen = ({ navigation }) => {
         <FlatList
           data={produtosData.produtos}
           keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Image source={{ uri: item.imagem }} style={styles.imagem} />
               <View style={styles.info}>
                 <Text style={styles.nome}>{item.nome}</Text>
-                <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
+                <Text style={styles.preco}>
+                  R$ {Number(item.preco).toFixed(2)}
+                </Text>
               </View>
             </View>
           )}
+          showsVerticalScrollIndicator={false}
         />
 
       </View>
@@ -36,21 +40,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 30,
-    alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#6D4C41',
-    marginBottom: 12,
+    marginBottom: 20,
     textAlign: 'center',
+  },
+  listContent: {
+    paddingBottom: 20,
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    marginVertical: 8,
-    marginHorizontal: 16,
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     elevation: 3,
     shadowColor: '#000',
@@ -59,6 +63,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     padding: 10,
     alignItems: 'center',
+    marginBottom: 12,
   },
   imagem: {
     width: 80,

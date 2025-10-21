@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, Alert, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, Alert, StyleSheet } from 'react-native';
 import { supabase } from '../Services/supabase';
 
-export default function SinginScreen() {
+export default function SinginScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -49,6 +49,7 @@ export default function SinginScreen() {
       setNome('');
       setEmail('');
       setSenha('');
+      navigation.navigate('Login');
     }
   }
 
@@ -61,7 +62,9 @@ export default function SinginScreen() {
         value={nome}
         onChangeText={setNome}
         style={styles.input}
+        placeholderTextColor="#A1887F"
       />
+
       <TextInput
         placeholder="Email"
         value={email}
@@ -69,28 +72,73 @@ export default function SinginScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
         style={styles.input}
+        placeholderTextColor="#A1887F"
       />
+
       <TextInput
         placeholder="Senha"
         value={senha}
         onChangeText={setSenha}
         secureTextEntry
         style={styles.input}
+        placeholderTextColor="#A1887F"
       />
 
-      <Button title="Cadastrar" onPress={cadastrarUsuario} />
+      <TouchableOpacity style={styles.button} onPress={cadastrarUsuario}>
+        <Text style={styles.buttonText}>Cadastrar</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.link}>Já tem conta? Faça login</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 24, marginBottom: 20, textAlign: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF8E1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 30,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#6D4C41',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
+    width: '100%',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D7CCC8',
     padding: 12,
-    marginBottom: 12,
+    marginBottom: 15,
+    color: '#6D4C41',
+    fontSize: 16,
+  },
+  button: {
+    width: '100%',
+    backgroundColor: '#FFA726',
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+    elevation: 3,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  link: {
+    color: '#6D4C41',
+    marginTop: 20,
+    textAlign: 'center',
+    fontSize: 15,
   },
 });
