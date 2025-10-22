@@ -1,13 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View, FlatList, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { supabase } from '../Services/supabase';
 import produtosData from '../Services/Mock.json';
 
-export const HomeScreen = ({ navigation }) => {
+export const HomeScreen = () => {
+  const [nomeUsuario, setNomeUsuario] = useState('');
+
+  useEffect(() => {
+    async function buscarNomeUsuario() {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !sessionData?.session?.user) {
+        console.log('Usuário não autenticado');
+        return;
+      }
+
+      const userEmail = sessionData.session.user.email;
+
+      const { data: usuario, error } = await supabase
+        .from('usuarios')
+        .select('nome')
+        .eq('email', userEmail)
+        .single();
+
+      if (error) {
+        console.log('Erro ao buscar nome:', error.message);
+      } else {
+        setNomeUsuario(usuario.nome);
+      }
+    }
+
+    buscarNomeUsuario();
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-
         <Text style={styles.title}>Cantina Escolar</Text>
+
+        {nomeUsuario ? (
+          <Text style={styles.welcome}>Bem-vindo, {nomeUsuario}!</Text>
+        ) : null}
 
         <FlatList
           data={produtosData.produtos}
@@ -26,7 +59,6 @@ export const HomeScreen = ({ navigation }) => {
           )}
           showsVerticalScrollIndicator={false}
         />
-
       </View>
     </SafeAreaView>
   );
@@ -45,6 +77,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    color: '#6D4C41',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  welcome: {
+    fontSize: 20,
     color: '#6D4C41',
     marginBottom: 20,
     textAlign: 'center',

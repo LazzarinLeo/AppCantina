@@ -8,9 +8,10 @@ export default function SinginScreen({ navigation }) {
   const [senha, setSenha] = useState('');
 
   const emailValido = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const regex = /^[^\s@]+@estudante\.sesisenai\.org\.br$/;
     return regex.test(email);
   };
+  
 
   async function cadastrarUsuario() {
     if (!nome || !email || !senha) {
@@ -49,7 +50,7 @@ export default function SinginScreen({ navigation }) {
       setNome('');
       setEmail('');
       setSenha('');
-      navigation.navigate('Login');
+      navigation.navigate('Home');
     }
   }
 
