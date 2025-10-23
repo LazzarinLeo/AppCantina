@@ -9,7 +9,7 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# Native / Platforms
 .kotlin/
 *.orig.*
 *.jks
@@ -21,21 +21,45 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
-# debug
+# debug / logs / runtime data
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
+*.pid
+.cache/
+coverage/
+.nyc_output/
 
-# macOS
+# macOS / OS files
 .DS_Store
 *.pem
+*.icloud
 
 # local env files
+.env
 .env*.local
 
 # typescript
 *.tsbuildinfo
 
-# generated native folders
+# IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# Android build artifacts
+.gradle/
+build/
+local.properties
+
+# iOS / Xcode build artifacts
+xcuserdata/
+*.xcworkspace
+DerivedData/
+*.ipa
+*.dSYM
+
+# generated native folders (if you choose to ignore the whole native projects)
 /ios
 /android
