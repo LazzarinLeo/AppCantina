@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { BackHandler, Alert } from 'react-native';
+import { BackHandler} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ProdutosScreen from '../screens/ProdutosScreen';
 import PerfilScreen from './PerfilScreen';
@@ -9,8 +9,6 @@ import PerfilScreen from './PerfilScreen';
 const Tab = createBottomTabNavigator();
 
 export default function HomeScreen() {
-
- 
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {

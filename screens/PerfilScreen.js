@@ -6,7 +6,6 @@ export default function PerfilScreen({ navigation }) {
   const { user, logout } = useUser();
 
   useEffect(() => {
-    // Se não houver usuário logado, redireciona para Login
     if (!user) {
       navigation.reset({
         index: 0,
@@ -24,10 +23,10 @@ export default function PerfilScreen({ navigation }) {
         { 
           text: 'Sim', 
           onPress: () => {
-            logout(); // limpa o usuário do contexto
+            logout();
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Login' }], // volta pro login e bloqueia o histórico
+              routes: [{ name: 'Login' }],
             });
           } 
         },
@@ -43,7 +42,6 @@ export default function PerfilScreen({ navigation }) {
         <>
           <Text style={styles.nome}>Bem-vindo, {user.nome}!</Text>
           <Text style={styles.email}>{user.email}</Text>
-
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>

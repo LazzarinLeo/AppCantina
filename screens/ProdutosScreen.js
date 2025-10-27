@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, Image, FlatList, StyleSheet } from 'react-native';
+import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 const Produtos = require('../Services/Mock.json');
 
 export default function ProdutosScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>🍞 Produtos</Text>
+      <Text style={styles.titulo}>Catálogo</Text>
 
       <FlatList
         data={Produtos}
@@ -16,6 +16,9 @@ export default function ProdutosScreen() {
             <Image source={{ uri: item.imagem }} style={styles.imagem} />
             <View style={styles.info}>
               <Text style={styles.nome}>{item.nome}</Text>
+              <TouchableOpacity style={styles.button}>
+                <Text style={styles.buttonText}>Comprar</Text>
+              </TouchableOpacity>
               <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
             </View>
           </View>
@@ -44,4 +47,18 @@ const styles = StyleSheet.create({
   info: { padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   nome: { fontSize: 18, fontWeight: '600', color: '#444', flex: 1, marginRight: 10 },
   preco: { fontSize: 16, fontWeight: 'bold', color: '#009688' },
+
+  button: {
+    width: '100',
+    backgroundColor: '#FFA726',
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
