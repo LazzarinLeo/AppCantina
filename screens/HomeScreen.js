@@ -1,68 +1,45 @@
+<<<<<<< HEAD
 
 import React, { useEffect, useState } from 'react';
 import { Text, View, FlatList, StyleSheet, SafeAreaView, Image } from 'react-native';
 import { supabase } from '../Services/supabase';
 import produtosData from '../Services/Mock.json';
+=======
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import ProdutosScreen from '../screens/ProdutosScreen';
+import PerfilScreen from '../screens/PerfilScreen';
+>>>>>>> 0a6c06fcd4839877d2ebb344e13ae19ddab4ba9d
 
-export const HomeScreen = () => {
-  const [nomeUsuario, setNomeUsuario] = useState('');
+const Tab = createBottomTabNavigator();
 
-  useEffect(() => {
-    async function buscarNomeUsuario() {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !sessionData?.session?.user) {
-        console.log('Usuário não autenticado');
-        return;
-      }
-
-      const userEmail = sessionData.session.user.email;
-
-      const { data: usuario, error } = await supabase
-        .from('usuarios')
-        .select('nome')
-        .eq('email', userEmail)
-        .single();
-
-      if (error) {
-        console.log('Erro ao buscar nome:', error.message);
-      } else {
-        setNomeUsuario(usuario.nome);
-      }
-    }
-
-    buscarNomeUsuario();
-  }, []);
-
+export default function HomeScreen() {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Cantina Escolar</Text>
-
-        {nomeUsuario ? (
-          <Text style={styles.welcome}>Bem-vindo, {nomeUsuario}!</Text>
-        ) : null}
-
-        <FlatList
-          data={produtosData.produtos}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Image source={{ uri: item.imagem }} style={styles.imagem} />
-              <View style={styles.info}>
-                <Text style={styles.nome}>{item.nome}</Text>
-                <Text style={styles.preco}>
-                  R$ {Number(item.preco).toFixed(2)}
-                </Text>
-              </View>
-            </View>
-          )}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-    </SafeAreaView>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: '#009688',
+        tabBarInactiveTintColor: '#999',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopWidth: 0, 
+          elevation: 5,
+          height: 60,
+        },
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === 'Produtos') iconName = 'fast-food';
+          else if (route.name === 'Perfil') iconName = 'person';
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="Produtos" component={ProdutosScreen} />
+      <Tab.Screen name="Perfil" component={PerfilScreen} />
+    </Tab.Navigator>
   );
+<<<<<<< HEAD
 };
 
 const styles = StyleSheet.create({
@@ -125,3 +102,6 @@ const styles = StyleSheet.create({
   },
 });
 
+=======
+}
+>>>>>>> 0a6c06fcd4839877d2ebb344e13ae19ddab4ba9d
