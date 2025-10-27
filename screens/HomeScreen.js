@@ -1,19 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View, FlatList, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { supabase } from '../Services/supabase';
 import produtosData from '../Services/Mock.json';
-import { useUser } from '../contexts/UserContext'; // 👈 Importa o contexto global
 
 export const HomeScreen = () => {
-  const { user } = useUser(); // 👈 Acessa o usuário logado do contexto
+  const [nomeUsuario, setNomeUsuario] = useState('');
+
+  useEffect(() => {
+    async function buscarNomeUsuario() {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !sessionData?.session?.user) {
+        console.log('Usuário não autenticado');
+        return;
+      }
+
+      const userEmail = sessionData.session.user.email;
+
+      const { data: usuario, error } = await supabase
+        .from('usuarios')
+        .select('nome')
+        .eq('email', userEmail)
+        .single();
+
+      if (error) {
+        console.log('Erro ao buscar nome:', error.message);
+      } else {
+        setNomeUsuario(usuario.nome);
+      }
+    }
+
+    buscarNomeUsuario();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>Cantina Escolar</Text>
 
-        {user && (
-          <Text style={styles.welcome}>Bem-vindo, {user.nome}!</Text>
-        )}
+        {nomeUsuario ? (
+          <Text style={styles.welcome}>Bem-vindo, {nomeUsuario}!</Text>
+        ) : null}
 
         <FlatList
           data={produtosData.produtos}
@@ -24,7 +51,9 @@ export const HomeScreen = () => {
               <Image source={{ uri: item.imagem }} style={styles.imagem} />
               <View style={styles.info}>
                 <Text style={styles.nome}>{item.nome}</Text>
-                <Text style={styles.preco}>R$ {Number(item.preco).toFixed(2)}</Text>
+                <Text style={styles.preco}>
+                  R$ {Number(item.preco).toFixed(2)}
+                </Text>
               </View>
             </View>
           )}
