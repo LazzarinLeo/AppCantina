@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Alert, StyleSheet } from 'react-native';
 import { supabase } from '../Services/supabase';
+import { useUser } from '../contexts/UserContext'; // 👈 importa o contexto
 
 export default function SinginScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const { login } = useUser(); // 👈 pega a função de login do contexto
 
   const emailValido = (email) => {
     const regex = /^[^\s@]+@estudante\.sesisenai\.org\.br$/;
     return regex.test(email);
   };
-  
 
   async function cadastrarUsuario() {
     if (!nome || !email || !senha) {
@@ -24,33 +25,49 @@ export default function SinginScreen({ navigation }) {
       return;
     }
 
-    const { data: existingUser, error: errorCheck } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('email', email);
+    try {
+      // Verifica se o email já existe
+      const { data: existingUser, error: errorCheck } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', email);
 
-    if (errorCheck) {
-      Alert.alert('Erro ao verificar usuário', errorCheck.message);
-      return;
-    }
+      if (errorCheck) {
+        Alert.alert('Erro ao verificar usuário', errorCheck.message);
+        return;
+      }
 
-    if (existingUser.length > 0) {
-      Alert.alert('Email já cadastrado!');
-      return;
-    }
+      if (existingUser.length > 0) {
+        Alert.alert('Email já cadastrado!');
+        return;
+      }
 
-    const { data, error } = await supabase
-      .from('usuarios')
-      .insert([{ nome, email, senha }]);
+      // Cria novo usuário
+      const { data, error } = await supabase
+        .from('usuarios')
+        .insert([{ nome, email, senha }])
+        .select()
+        .single(); // 👈 retorna o usuário recém-criado
 
-    if (error) {
-      Alert.alert('Erro ao cadastrar', error.message);
-    } else {
-      Alert.alert('Usuário cadastrado com sucesso!');
+      if (error) {
+        Alert.alert('Erro ao cadastrar', error.message);
+        return;
+      }
+
+      // Login automático 👇
+      login(data); // adiciona o usuário ao contexto
+      Alert.alert('Usuário cadastrado e logado com sucesso!');
+
+      // Limpa os campos
       setNome('');
       setEmail('');
       setSenha('');
+
+      // Redireciona para Home
       navigation.navigate('Home');
+
+    } catch (err) {
+      Alert.alert('Erro inesperado', err.message);
     }
   }
 

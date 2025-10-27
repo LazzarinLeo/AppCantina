@@ -6,7 +6,7 @@ import { useUser } from '../contexts/UserContext'; // 👈 Importa o contexto
 export default function LoginScreen({ navigation }) {
   const [identificador, setIdentificador] = useState('');
   const [senha, setSenha] = useState('');
-  const { login } = useUser(); // 👈 Usa a função de login global
+  const { login } = useUser();
 
   async function fazerLogin() {
     if (!identificador || !senha) {
@@ -30,7 +30,6 @@ export default function LoginScreen({ navigation }) {
         return;
       }
 
-      // ✅ Salva o usuário globalmente
       login(user);
 
       Alert.alert('Login realizado com sucesso!');
