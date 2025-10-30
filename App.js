@@ -2,6 +2,8 @@ import LoginScreen from './screens/LoginScreen';
 import SinginScreen from './screens/SingInScreen';
 import HomeScreen from './screens/HomeScreen';
 import { UserProvider } from './contexts/UserContext';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
 
 const Stack = createNativeStackNavigator();
 
