@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 const Produtos = require('../Services/Mock.json');
 
 export default function ProdutosScreen() {
+  const [favoritos, setFavoritos] = useState([]);
+
+  const toggleFavorito = (id) => {
+    setFavoritos((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Catálogo</Text>
@@ -11,24 +20,34 @@ export default function ProdutosScreen() {
         data={Produtos}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.lista}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: item.imagem }} style={styles.imagem} />
-              <TouchableOpacity style={styles.estrelaButton}>
-                <Image source={require('../assets/estrela.png')} style={styles.estrela} />
-              </TouchableOpacity>
-            </View>
+        renderItem={({ item }) => {
+          const isFavorito = favoritos.includes(item.id);
+          return (
+            <View style={styles.card}>
+              <View style={styles.imageContainer}>
+                <Image source={{ uri: item.imagem }} style={styles.imagem} />
+                <TouchableOpacity
+                  style={styles.estrelaButton}
+                  onPress={() => toggleFavorito(item.id)}
+                >
+                  <Ionicons
+                    name={isFavorito ? 'star' : 'star-outline'}
+                    size={24}
+                    color={isFavorito ? '#FFD700' : '#999'}
+                  />
+                </TouchableOpacity>
+              </View>
 
-            <View style={styles.info}>
-              <Text style={styles.nome}>{item.nome}</Text>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Adicionar ao carrinho</Text>
-              </TouchableOpacity>
-              <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
+              <View style={styles.info}>
+                <Text style={styles.nome}>{item.nome}</Text>
+                <TouchableOpacity style={styles.button}>
+                  <Text style={styles.buttonText}>Adicionar ao carrinho</Text>
+                </TouchableOpacity>
+                <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
+              </View>
             </View>
-          </View>
-        )}
+          );
+        }}
       />
     </View>
   );
@@ -74,10 +93,9 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     zIndex: 2,
-  },
-  estrela: {
-    width: 20,
-    height: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 5
   },
   info: {
     padding: 12,
