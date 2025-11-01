@@ -6,7 +6,6 @@ export default function CarteiraScreen({ usuarioId }) {
   const [saldo, setSaldo] = useState(0);
   const [valor, setValor] = useState('');
 
-  // 🔹 Busca o saldo da carteira do usuário
   async function carregarSaldo() {
     try {
         const { data, error } = await supabase
@@ -23,7 +22,6 @@ export default function CarteiraScreen({ usuarioId }) {
     setSaldo(data.saldo);
   }
 
-  // 🔹 Adiciona saldo
   async function adicionarSaldo() {
         const valorNumerico = parseFloat(valor);
         if (isNaN(valorNumerico) || valorNumerico <= 0) {

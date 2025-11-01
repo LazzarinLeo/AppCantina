@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { CartContext } from '../contexts/CartContext';
+import { WalletContext } from '../contexts/WalletContext';
 const Produtos = require('../Services/Mock.json');
 
 export default function ProdutosScreen() {
   const [favoritos, setFavoritos] = useState([]);
+  const { addToCart, cartItems } = useContext(CartContext);
+  const { saldo } = useContext(WalletContext);
 
   const toggleFavorito = (id) => {
     setFavoritos((prev) =>
@@ -12,8 +16,23 @@ export default function ProdutosScreen() {
     );
   };
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <Text style={styles.saldo}>💰 R$ {saldo.toFixed(2)}</Text>
+      <View style={styles.cartIcon}>
+        <Ionicons name="cart" size={28} color="#009688" />
+        {cartItems.length > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{cartItems.length}</Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
+      {renderHeader()}
       <Text style={styles.titulo}>Catálogo</Text>
 
       <FlatList
@@ -40,10 +59,11 @@ export default function ProdutosScreen() {
 
               <View style={styles.info}>
                 <Text style={styles.nome}>{item.nome}</Text>
-                <TouchableOpacity style={styles.button}>
+                <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
+
+                <TouchableOpacity style={styles.button} onPress={() => addToCart(item)}>
                   <Text style={styles.buttonText}>Adicionar ao carrinho</Text>
                 </TouchableOpacity>
-                <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
               </View>
             </View>
           );
@@ -59,6 +79,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     paddingTop: 50,
     paddingHorizontal: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  saldo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 16,
+    color: '#333',
+  },
+  cartIcon: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    right: -6,
+    top: -4,
+    backgroundColor: '#FF5722',
+    borderRadius: 8,
+    paddingHorizontal: 5,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   titulo: {
     fontSize: 26,

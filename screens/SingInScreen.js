@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Alert, StyleSheet } from 'react-native';
 import { supabase } from '../Services/supabase';
-import { useUser } from '../contexts/UserContext'; // 👈 importa o contexto
+import { useUser } from '../contexts/UserContext'; 
 
 export default function SinginScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const { login } = useUser(); // 👈 pega a função de login do contexto
+  const { login } = useUser(); 
 
   const emailValido = (email) => {
     const regex = /^[^\s@]+@estudante\.sesisenai\.org\.br$/;
@@ -26,7 +26,6 @@ export default function SinginScreen({ navigation }) {
     }
 
     try {
-      // Verifica se o email já existe
       const { data: existingUser, error: errorCheck } = await supabase
         .from('usuarios')
         .select('*')
@@ -42,28 +41,27 @@ export default function SinginScreen({ navigation }) {
         return;
       }
 
-      // Cria novo usuário
       const { data, error } = await supabase
         .from('usuarios')
         .insert([{ nome, email, senha }])
         .select()
-        .single(); // 👈 retorna o usuário recém-criado
+        .single(); 
 
       if (error) {
         Alert.alert('Erro ao cadastrar', error.message);
         return;
       }
 
-      // Login automático 👇
-      login(data); // adiciona o usuário ao contexto
+
+      login(data); 
       Alert.alert('Usuário cadastrado e logado com sucesso!');
 
-      // Limpa os campos
+
       setNome('');
       setEmail('');
       setSenha('');
 
-      // Redireciona para Home
+
       navigation.navigate('Home');
 
     } catch (err) {

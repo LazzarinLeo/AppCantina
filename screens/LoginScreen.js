@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Alert, StyleSheet } from 'react-native';
 import { supabase } from '../Services/supabase';
-import { useUser } from '../contexts/UserContext'; // 👈 Importa o contexto
+import { useUser } from '../contexts/UserContext';
 
 export default function LoginScreen({ navigation }) {
   const [identificador, setIdentificador] = useState('');
