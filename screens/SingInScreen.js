@@ -105,7 +105,10 @@ export default function SinginScreen({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Já tem conta? Faça login</Text>
+        <Text style={styles.link}>
+          Já tem conta?{' '}
+          <Text style={styles.highlight}>Faça login</Text>
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -156,5 +159,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
     fontSize: 15,
+  },
+  highlight: {
+    color: '#FFA726',
+    fontWeight: 'bold',
   },
 });

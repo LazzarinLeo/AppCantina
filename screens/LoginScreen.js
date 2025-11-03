@@ -66,7 +66,10 @@ export default function LoginScreen({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Singin')}>
-        <Text style={styles.link}>Ainda não tem conta? Cadastre-se</Text>
+        <Text style={styles.link}>
+          Ainda não tem conta?{' '}
+          <Text style={styles.highlight}>Cadastre-se</Text>
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -118,4 +121,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 15,
   },
+  highlight: {
+    color: '#FFA726',
+    fontWeight: 'bold',
+  },
+  
 });

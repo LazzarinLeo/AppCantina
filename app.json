@@ -4,11 +4,11 @@
     "slug": "AppProj",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Doce_sabor.png",
+    "icon": "./assets/doce_sabor.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/doce_sabor.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
