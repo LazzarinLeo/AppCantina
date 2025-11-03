@@ -3,10 +3,14 @@ import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../contexts/CartContext';
 import { WalletContext } from '../contexts/WalletContext';
+import { useNavigation } from '@react-navigation/native';
+
 const Produtos = require('../Services/Mock.json');
+
 
 export default function ProdutosScreen() {
   const [favoritos, setFavoritos] = useState([]);
+  const navigation = useNavigation();
   const { addToCart, cartItems } = useContext(CartContext);
   const { saldo } = useContext(WalletContext);
 
@@ -19,14 +23,17 @@ export default function ProdutosScreen() {
   const renderHeader = () => (
     <View style={styles.header}>
       <Text style={styles.saldo}>💰 R$ {saldo.toFixed(2)}</Text>
-      <View style={styles.cartIcon}>
+      
+      <TouchableOpacity style={styles.cartIcon} onPress={() => navigation.navigate('Carrinho')}
+      >
         <Ionicons name="cart" size={28} color="#009688" />
         {cartItems.length > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{cartItems.length}</Text>
           </View>
         )}
-      </View>
+      </TouchableOpacity>
+
     </View>
   );
 

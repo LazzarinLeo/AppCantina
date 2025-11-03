@@ -1,13 +1,33 @@
 import React, { useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { BackHandler } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+
 import ProdutosScreen from '../screens/ProdutosScreen';
-import PerfilScreen from './PerfilScreen';
 import CarrinhoScreen from './CarrinhoScreen';
+import PerfilScreen from './PerfilScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function ProdutosStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="ProdutosMain"
+        component={ProdutosScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Carrinho"
+        component={CarrinhoScreen}
+        options={{ title: 'Carrinho' }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 export default function HomeScreen() {
   useFocusEffect(
@@ -34,13 +54,11 @@ export default function HomeScreen() {
           let iconName;
           if (route.name === 'Produtos') iconName = 'fast-food';
           else if (route.name === 'Perfil') iconName = 'person';
-          else if (route.name === 'Carrinho') iconName = 'cart'; 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
     >
-      <Tab.Screen name="Produtos" component={ProdutosScreen} />
-      <Tab.Screen name="Carrinho" component={CarrinhoScreen} />
+      <Tab.Screen name="Produtos" component={ProdutosStack} />
       <Tab.Screen name="Perfil" component={PerfilScreen} />
     </Tab.Navigator>
   );
