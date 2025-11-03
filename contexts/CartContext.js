@@ -7,12 +7,15 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const { saldo, setSaldo } = useContext(WalletContext);
 
+  const gerarIdUnico = () => Date.now().toString() + Math.random().toString(36).substr(2, 5);
+
   const addToCart = (produto) => {
-    setCartItems(prev => [...prev, produto]);
+    const itemComIdUnico = { ...produto, cartId: gerarIdUnico()}
+    setCartItems ((prev) => [ ...prev, itemComIdUnico]);
   };
 
-  const removeFromCart = (id) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+  const removeFromCart = (cartId) => {
+    setCartItems(prev => prev.filter(item => item.cartId !== cartId));
   };
 
   const clearCart = () => setCartItems([]);
