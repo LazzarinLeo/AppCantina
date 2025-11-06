@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,11 @@ import {
 } from 'react-native';
 import { useUser } from '../contexts/UserContext';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons'; // Ícones do Expo
+import { CartContext } from '../contexts/CartContext';
 
 export default function PerfilScreen({ navigation }) {
   const { user, logout } = useUser();
+  const { clearCart } = useContext(CartContext)
 
   useEffect(() => {
     if (!user) {
@@ -30,6 +32,7 @@ export default function PerfilScreen({ navigation }) {
         text: 'Sim',
         onPress: () => {
           logout();
+          clearCart();
           navigation.reset({
             index: 0,
             routes: [{ name: 'Login' }],
