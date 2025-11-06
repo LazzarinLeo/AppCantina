@@ -3,12 +3,14 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../contexts/CartContext';
 import { WalletContext } from '../contexts/WalletContext';
+import { useUser } from '../contexts/UserContext';
 import { criarHistoricoCompra } from '../Services/HistoricoCompras';
 import { adicionarItensCompra } from '../Services/HistoricoItens';
 
 export default function CarrinhoScreen({ navigation }) {
   const { cartItems, removeFromCart, checkout } = useContext(CartContext);
   const { saldo } = useContext(WalletContext);
+  const { user } = useUser();
 
   const total = cartItems.reduce(
     (acc, item) => acc + item.preco * (item.quantidade || 1),
@@ -16,26 +18,37 @@ export default function CarrinhoScreen({ navigation }) {
   );
 
   const handleCheckout = async () => {
-    if (cartItems.length === 0) return;
-    if (saldo < total) return;
+    if (cartItems.length === 0) {
+      Alert.alert('Carrinho vazio', 'Adicione produtos antes de finalizar.');
+      return;
+    }
+
+    if (saldo < total) {
+      Alert.alert('Saldo insuficiente', 'Você não tem saldo suficiente.');
+      return;
+    }
 
     try {
-      const user_id = 1;
+      const user_id = user?.id;
+      if (!user_id) {
+        Alert.alert('Erro', 'Usuário não autenticado.');
+        return;
+      }
+
       const status = 'concluida';
-      const payment_met = 'Carteira';
+      const payment_method = 'Carteira';
 
+      const compra = await criarHistoricoCompra(user_id, total, status, payment_method);
 
-      const compra = await criarHistoricoCompra(user_id, total, status, payment_met);
-
-      if (!compra?.id) throw new Error();
+      if (!compra?.id) throw new Error('Erro ao criar compra');
 
       await adicionarItensCompra(compra.id, cartItems);
 
-
       checkout();
-      navigation.goBack();
-    } catch {
 
+    } catch (error) {
+      console.error('Erro ao finalizar compra:', error);
+      Alert.alert('Erro', 'Não foi possível finalizar sua compra.');
     }
   };
 

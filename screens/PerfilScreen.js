@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useUser } from '../contexts/UserContext';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../Services/supabase';
 
@@ -33,6 +33,10 @@ export default function PerfilScreen({ navigation }) {
         },
       },
     ]);
+  };
+
+  const goToHistorico = () => {
+    navigation.navigate('Historico');
   };
 
   const pickImage = async () => {
@@ -82,7 +86,7 @@ export default function PerfilScreen({ navigation }) {
       const filePath = `avatars/${fileName}`;
 
       const response = await fetch(uri);
-      const arrayBuffer = await response.arrayBuffer(); // ✅ compatível com Expo
+      const arrayBuffer = await response.arrayBuffer();
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -99,7 +103,6 @@ export default function PerfilScreen({ navigation }) {
 
       const avatarUrl = publicUrlData.publicUrl;
       await updateUserAvatar(avatarUrl);
-
     } catch (error) {
       console.error('Erro ao fazer upload:', error.message);
     }
@@ -151,6 +154,11 @@ export default function PerfilScreen({ navigation }) {
         ) : (
           <Text style={styles.nome}>Carregando...</Text>
         )}
+
+        <TouchableOpacity style={styles.historyButton} onPress={goToHistorico}>
+          <FontAwesome5 name="receipt" size={18} color="#4E342E" />
+          <Text style={styles.historyText}> Ver Histórico de Compras</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={20} color="#FFF" />
@@ -218,6 +226,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8D6E63',
     marginBottom: 25,
+  },
+  historyButton: {
+    flexDirection: 'row',
+    backgroundColor: '#FFB74D',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginBottom: 15,
+    width: '80%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyText: {
+    color: '#4E342E',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   logoutButton: {
     flexDirection: 'row',
