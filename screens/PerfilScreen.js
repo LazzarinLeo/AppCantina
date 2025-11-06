@@ -170,7 +170,7 @@ export default function PerfilScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF8E1' },
+  container: { flex: 1, backgroundColor: '#ffe8e0' },
   headerBackground: {
     backgroundColor: '#FF7043',
     height: 220,

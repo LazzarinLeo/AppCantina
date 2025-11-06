@@ -117,7 +117,7 @@ export default function SinginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E1',
+    backgroundColor: '#ffe8e0',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 30,
