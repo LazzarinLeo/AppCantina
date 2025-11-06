@@ -1,22 +1,42 @@
 import React, { useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../contexts/CartContext';
 import { WalletContext } from '../contexts/WalletContext';
-import { Ionicons } from '@expo/vector-icons';
+import { criarHistoricoCompra } from '../Services/HistoricoCompras';
+import { adicionarItensCompra } from '../Services/HistoricoItens';
 
 export default function CarrinhoScreen({ navigation }) {
   const { cartItems, removeFromCart, checkout } = useContext(CartContext);
   const { saldo } = useContext(WalletContext);
 
-  const total = cartItems.reduce((acc, item) => acc + item.preco, 0);
+  const total = cartItems.reduce(
+    (acc, item) => acc + item.preco * (item.quantidade || 1),
+    0
+  );
 
-  const handleCheckout = () => {
-    if (cartItems.length === 0) {
-      Alert.alert('Carrinho vazio', 'Adicione produtos antes de finalizar.');
-      return;
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) return;
+    if (saldo < total) return;
+
+    try {
+      const user_id = 1;
+      const status = 'concluida';
+      const payment_met = 'Carteira';
+
+
+      const compra = await criarHistoricoCompra(user_id, total, status, payment_met);
+
+      if (!compra?.id) throw new Error();
+
+      await adicionarItensCompra(compra.id, cartItems);
+
+
+      checkout();
+      navigation.goBack();
+    } catch {
+
     }
-    const success = checkout();
-    if (success) navigation.goBack();
   };
 
   return (
@@ -28,15 +48,18 @@ export default function CarrinhoScreen({ navigation }) {
       ) : (
         <FlatList
           data={cartItems}
-          keyExtractor={(item) => item.cartId}
+          keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.itemContainer}>
               <View style={styles.itemInfo}>
                 <Text style={styles.itemName}>{item.nome}</Text>
                 <Text style={styles.itemPrice}>R$ {item.preco.toFixed(2)}</Text>
+                {item.quantidade && (
+                  <Text style={styles.itemQty}>Qtd: {item.quantidade}</Text>
+                )}
               </View>
               <TouchableOpacity
-                onPress={() => removeFromCart(item.cartId)}
+                onPress={() => removeFromCart(item.id)}
                 style={styles.removeButton}
               >
                 <Ionicons name="trash" size={22} color="#FFFFFF" />
@@ -51,10 +74,7 @@ export default function CarrinhoScreen({ navigation }) {
         <Text style={styles.total}>Total: R$ {total.toFixed(2)}</Text>
 
         <TouchableOpacity
-          style={[
-            styles.checkoutButton,
-            { opacity: cartItems.length === 0 ? 0.6 : 1 },
-          ]}
+          style={[styles.checkoutButton, { opacity: cartItems.length === 0 ? 0.6 : 1 }]}
           onPress={handleCheckout}
           disabled={cartItems.length === 0}
         >
@@ -68,17 +88,20 @@ export default function CarrinhoScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E1', 
-    padding: 20,
+    backgroundColor: '#FFF8E1',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   header: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 20,
-    color: '#6D4C41', 
+    color: '#6D4C41',
   },
   emptyText: {
+    flex: 1,
     textAlign: 'center',
     fontSize: 18,
     color: '#8D6E63',
@@ -89,30 +112,42 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 10,
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 12,
     borderColor: '#D7CCC8',
     borderWidth: 1,
-    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
   },
   itemInfo: {
     flex: 1,
+    marginRight: 12,
   },
   itemName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: '#5D4037',
+    marginBottom: 4,
   },
   itemPrice: {
     fontSize: 15,
     color: '#009688',
-    marginTop: 5,
+    marginBottom: 2,
+  },
+  itemQty: {
+    fontSize: 14,
+    color: '#757575',
   },
   removeButton: {
     backgroundColor: '#FF7043',
     borderRadius: 6,
-    padding: 6,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   footer: {
     marginTop: 'auto',
@@ -123,23 +158,25 @@ const styles = StyleSheet.create({
   saldo: {
     fontSize: 16,
     color: '#5D4037',
+    marginBottom: 4,
   },
   total: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#6D4C41',
-    marginVertical: 10,
+    marginVertical: 12,
   },
   checkoutButton: {
     backgroundColor: '#FFA726',
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    elevation: 3,
+    justifyContent: 'center',
+    elevation: 4,
   },
   checkoutText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '700',
   },
 });
