@@ -64,7 +64,7 @@ export default function CarrinhoScreen({ navigation }) {
       ) : (
         <FlatList
           data={cartItems}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item.cartId}
           renderItem={({ item }) => (
             <View style={styles.itemCard}>
               <View style={styles.itemInfo}>
@@ -75,7 +75,7 @@ export default function CarrinhoScreen({ navigation }) {
                 )}
               </View>
               <TouchableOpacity
-                onPress={() => removeFromCart(item.id)}
+                onPress={() => removeFromCart(item.cartId)}
                 style={styles.removeButton}
               >
                 <Ionicons name="trash-outline" size={22} color="#fff" />
