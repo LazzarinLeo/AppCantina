@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    backgroundColor: '#FFA726',
+    backgroundColor: '#FF7043',
     paddingVertical: 14,
     borderRadius: 8,
     marginTop: 10,
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   highlight: {
-    color: '#FFA726',
+    color: '#FF7043',
     fontWeight: 'bold',
   },
 });

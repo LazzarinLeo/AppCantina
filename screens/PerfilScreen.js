@@ -172,7 +172,7 @@ export default function PerfilScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF8E1' },
   headerBackground: {
-    backgroundColor: '#FFD54F',
+    backgroundColor: '#FF7043',
     height: 220,
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     borderWidth: 3,
-    borderColor: '#FFB300',
+    borderColor: '#FF7043',
     borderRadius: 75,
     padding: 3,
     marginBottom: 10,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     borderRadius: 55,
   },
   actionText: {
-    color: '#FFB300',
+    color: '#FF7043',
     marginBottom: 15,
     fontWeight: 'bold',
   },
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   historyButton: {
     flexDirection: 'row',
-    backgroundColor: '#FFB74D',
+    backgroundColor:'#fa9778',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,
