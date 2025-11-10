@@ -20,7 +20,7 @@ const Produtos = require('../Services/Mock.json');
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 12;
 const NUM_COLS = 2;
-const CARD_WIDTH = (width - (CARD_MARGIN * (NUM_COLS + 1)) - 32) / NUM_COLS; // 32 = paddingHorizontal
+const CARD_WIDTH = (width - (CARD_MARGIN * (NUM_COLS + 1)) - 32) / NUM_COLS;
 
 export default function ProdutosScreen() {
   const [favoritos, setFavoritos] = useState([]);
@@ -28,35 +28,34 @@ export default function ProdutosScreen() {
   const { addToCart, cartItems } = useContext(CartContext);
   const { saldo } = useContext(WalletContext);
 
-  // refs para animação do "pop" do coração por id
   const heartScales = useRef({}).current;
   const getHeartScale = (id) => {
     if (!heartScales[id]) heartScales[id] = new Animated.Value(1);
     return heartScales[id];
   };
 
-  // refs para animação do botão adicionar por cartId (scale ao pressionar)
-  const buttonScale = useRef(new Animated.Value(1)).current;
+  const buttonScales = useRef({}).current;
+  const getButtonScale = (id) => {
+    if (!buttonScales[id]) buttonScales[id] = new Animated.Value(1);
+    return buttonScales[id];
+  };
 
   const toggleFavorito = (id) => {
     const isFav = favoritos.includes(id);
     setFavoritos((prev) => (isFav ? prev.filter((x) => x !== id) : [...prev, id]));
-
-    // anima "pop" do coração
     const scale = getHeartScale(id);
     scale.setValue(0.8);
-    Animated.spring(scale, {
-      toValue: 1,
-      friction: 4,
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }).start();
   };
 
-  const pressInButton = () => {
-    Animated.spring(buttonScale, { toValue: 0.96, useNativeDriver: true }).start();
+  const pressInButton = (id) => {
+    const scale = getButtonScale(id);
+    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true }).start();
   };
-  const pressOutButton = () => {
-    Animated.spring(buttonScale, { toValue: 1, friction: 6, useNativeDriver: true }).start();
+
+  const pressOutButton = (id) => {
+    const scale = getButtonScale(id);
+    Animated.spring(scale, { toValue: 1, friction: 6, useNativeDriver: true }).start();
   };
 
   const Header = () => (
@@ -88,6 +87,7 @@ export default function ProdutosScreen() {
   const renderItem = ({ item }) => {
     const isFavorito = favoritos.includes(item.id);
     const heartScale = getHeartScale(item.id);
+    const buttonScale = getButtonScale(item.id);
 
     return (
       <View style={[styles.card, { width: CARD_WIDTH }]}>
@@ -121,8 +121,8 @@ export default function ProdutosScreen() {
 
             <Pressable
               onPress={() => addToCart(item)}
-              onPressIn={pressInButton}
-              onPressOut={pressOutButton}
+              onPressIn={() => pressInButton(item.id)}
+              onPressOut={() => pressOutButton(item.id)}
               android_ripple={{ color: '#00000010', borderless: false }}
               style={{ marginLeft: 8 }}
             >
@@ -194,11 +194,7 @@ const styles = StyleSheet.create({
 
   titulo: { fontSize: 22, fontWeight: '800', color: '#3E2723', marginTop: 16, marginBottom: 8 },
 
-  lista: {
-    paddingBottom: 30,
-    paddingTop: 6,
-    gap: 12,
-  },
+  lista: { paddingBottom: 30, paddingTop: 6, gap: 12 },
 
   card: {
     backgroundColor: '#fff',
@@ -206,7 +202,6 @@ const styles = StyleSheet.create({
     margin: CARD_MARGIN / 2,
     overflow: 'hidden',
     elevation: 4,
-    // sombra IOS
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
