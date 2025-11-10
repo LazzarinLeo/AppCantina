@@ -42,10 +42,11 @@ export default function SinginScreen({ navigation }) {
       }
 
       const { data, error } = await supabase
-        .from('usuarios')
-        .insert([{ nome, email, senha }])
-        .select()
-        .single(); 
+      .from('usuarios')
+      .insert([{ nome, email, senha }])
+      .select()
+      .single(); 
+      
 
       if (error) {
         Alert.alert('Erro ao cadastrar', error.message);
