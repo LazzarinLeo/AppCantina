@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TextInput, Alert, StyleSheet } from 'react-native';
-import { supabase } from './supabaseClient';
+import { supabase } from '../Services/supabase';
 
 export default function CarteiraScreen({ usuarioId }) {
   const [saldo, setSaldo] = useState(0);
@@ -9,9 +9,9 @@ export default function CarteiraScreen({ usuarioId }) {
   async function carregarSaldo() {
     try {
         const { data, error } = await supabase
-        .from('Carteiras')
-        .select('Saldo')
-        .eq('Usuario_id', usuarioId)
+        .from('carteiras')
+        .select('saldo')
+        .eq('usuario_id', usuarioId)
         .single();
     } catch (error) {
         console.error('Erro ao carregar saldo:', error);
