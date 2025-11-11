@@ -42,26 +42,33 @@ export default function SinginScreen({ navigation }) {
       }
 
       const { data, error } = await supabase
-      .from('usuarios')
-      .insert([{ nome, email, senha }])
-      .select()
-      .single(); 
-      
+        .from('usuarios')
+        .insert([{ nome, email, senha }])
+        .select()
+        .single();
 
       if (error) {
         Alert.alert('Erro ao cadastrar', error.message);
         return;
       }
 
+      // ✅ Criar carteira do usuário automaticamente
+      const { error: carteiraError } = await supabase
+        .from('carteiras')
+        .insert([{ usuario_id: data.id }]); // saldo e tickets já possuem default
 
-      login(data); 
+      if (carteiraError) {
+        Alert.alert('Erro ao criar carteira', carteiraError.message);
+        return;
+      }
+
+      // Logar usuário
+      login(data);
       Alert.alert('Usuário cadastrado e logado com sucesso!');
-
 
       setNome('');
       setEmail('');
       setSenha('');
-
 
       navigation.navigate('Home');
 

@@ -1,32 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TextInput, Alert, StyleSheet } from 'react-native';
 import { supabase } from '../Services/supabase';
+import { useUser } from '../contexts/UserContext';
 
-export default function CarteiraScreen({ usuarioId }) {
+export default function CarteiraScreen() {
+  const { user } = useUser();
+  const usuarioId = user.id;
+
   const [saldo, setSaldo] = useState(0);
   const [valor, setValor] = useState('');
 
   async function carregarSaldo() {
     try {
-        const { data, error } = await supabase
+      const { data, error } = await supabase
         .from('carteiras')
         .select('saldo')
         .eq('usuario_id', usuarioId)
         .single();
-    } catch (error) {
-        console.error('Erro ao carregar saldo:', error);
-        Alert.alert('Erro', 'Não foi possível carregar o saldo.');
-        return;
-    }
 
-    setSaldo(data.saldo);
+      if (error) throw error;
+
+      setSaldo(data.saldo);
+
+    } catch (error) {
+      console.error('Erro ao carregar saldo:', error);
+      Alert.alert('Erro', 'Não foi possível carregar o saldo.');
+    }
   }
 
   async function adicionarSaldo() {
-        const valorNumerico = parseFloat(valor);
-        if (isNaN(valorNumerico) || valorNumerico <= 0) {
-        Alert.alert('Erro', 'Digite um valor válido.');
-        return;
+    const valorNumerico = parseFloat(valor);
+    if (isNaN(valorNumerico) || valorNumerico <= 0) {
+      Alert.alert('Erro', 'Digite um valor válido.');
+      return;
     }
 
     const { error } = await supabase.rpc('alterar_saldo', {
@@ -61,6 +67,7 @@ export default function CarteiraScreen({ usuarioId }) {
         value={valor}
         onChangeText={setValor}
       />
+
       <Button title="Adicionar Saldo" onPress={adicionarSaldo} />
     </View>
   );
