@@ -12,34 +12,51 @@ export const WalletProvider = ({ usuarioId, children }) => {
     try {
       const { data, error } = await supabase
         .from('carteiras')
-        .select('saldo, ticket')
+        .select('saldo, ticket, ultima_atualizacao')
         .eq('usuario_id', usuarioId)
         .maybeSingle();
 
       if (error) throw error;
 
       if (data) {
+        const agora = new Date();
+        const ultimaAtualizacao = data.ultima_atualizacao
+          ? new Date(data.ultima_atualizacao)
+          : agora;
+          
+        const minutosPassados = Math.floor(
+          (agora - ultimaAtualizacao) / (1000 * 60 * 60 * 24)
+        );
+
+        const novoTicket = (data.ticket ?? 0) + minutosPassados;
+        setTickets(novoTicket);
         setSaldo(data.saldo ?? 0);
-        setTickets(data.ticket ?? 0);
+
+        if (minutosPassados > 0) {
+          await supabase
+            .from('carteiras')
+            .update({ ticket: novoTicket, ultima_atualizacao: agora })
+            .eq('usuario_id', usuarioId);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar carteira:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as informações da carteira.');
+      Alert.alert('Erro', 'Não foi possível carregar a carteira.');
     }
   }
 
-  const incrementarTicket = () => {
-    setTickets((prevTickets) => {
-      const novoTicket = prevTickets + 1;
-      supabase
+  const incrementarTicket = async () => {
+    const novoTicket = tickets + 1;
+    setTickets(novoTicket);
+
+    try {
+      await supabase
         .from('carteiras')
-        .update({ ticket: novoTicket })
-        .eq('usuario_id', usuarioId)
-        .then(({ error }) => {
-          if (error) console.error('Erro ao atualizar ticket no banco:', error);
-        });
-      return novoTicket;
-    });
+        .update({ ticket: novoTicket, ultima_atualizacao: new Date() })
+        .eq('usuario_id', usuarioId);
+    } catch (error) {
+      console.error('Erro ao atualizar ticket:', error);
+    }
   };
 
   useEffect(() => {
@@ -47,9 +64,10 @@ export const WalletProvider = ({ usuarioId, children }) => {
 
     carregarCarteira();
 
+    // Intervalo de 1 minuto
     const intervalo = setInterval(() => {
       incrementarTicket();
-    }, 24 * 60 * 60 * 1000);
+    }, 60 * 1000);
 
     const canal = supabase
       .channel(`carteira_realtime_${usuarioId}`)
@@ -61,13 +79,11 @@ export const WalletProvider = ({ usuarioId, children }) => {
           table: 'carteiras',
           filter: `usuario_id=eq.${usuarioId}`,
         },
-        async (payload) => {
+        (payload) => {
           const novaCarteira = payload.new;
           if (novaCarteira) {
             setSaldo(novaCarteira.saldo ?? 0);
             setTickets(novaCarteira.ticket ?? 0);
-          } else {
-            await carregarCarteira();
           }
         }
       )
