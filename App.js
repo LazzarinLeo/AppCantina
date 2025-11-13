@@ -13,7 +13,7 @@ import HistoricoScreen from './screens/HistoricoScreen';
 
 const Stack = createNativeStackNavigator();
 
-function AppRoutes() {
+function AppRoute() {
   const { user } = useContext(UserContext);
 
   return (
@@ -44,7 +44,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <UserProvider>
-      <AppRoutes />
+      <AppRoute />
     </UserProvider>
   );
 }
