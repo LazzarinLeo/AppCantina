@@ -26,7 +26,7 @@ export default function ProdutosScreen() {
   const [favoritos, setFavoritos] = useState([]);
   const navigation = useNavigation();
   const { addToCart, cartItems } = useContext(CartContext);
-  const { saldo } = useContext(WalletContext);
+  const { saldo, tickets } = useContext(WalletContext);
 
   const heartScales = useRef({}).current;
   const getHeartScale = (id) => {
@@ -66,7 +66,9 @@ export default function ProdutosScreen() {
       </View>
 
       <View style={styles.headerRight}>
-        <Text style={styles.saldo}>💰 {saldo.toFixed(2)}</Text>
+        <Text style={styles.saldo}>
+          💰 {saldo.toFixed(2)} | 🎟️ {tickets}
+        </Text>
 
         <TouchableOpacity
           style={styles.cartIcon}
