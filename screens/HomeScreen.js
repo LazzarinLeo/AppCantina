@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { BackHandler } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../contexts/ThemeContext';
 
 import ProdutosScreen from '../screens/ProdutosScreen';
 import CarrinhoScreen from './CarrinhoScreen';
@@ -30,6 +31,8 @@ function ProdutosStack() {
 }
 
 export default function HomeScreen() {
+  const { theme } = useTheme();
+
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => true;
@@ -42,10 +45,11 @@ export default function HomeScreen() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#009688',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: theme.colors.tabBarActive,
+        tabBarInactiveTintColor: theme.colors.tabBarInactive,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor:
+            theme.mode === 'dark' ? '#1C1C1E' : theme.colors.tabBarBackground,
           borderTopWidth: 0,
           elevation: 5,
           height: 60,

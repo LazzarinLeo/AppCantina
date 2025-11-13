@@ -9,12 +9,14 @@ import {
   ScrollView,
 } from 'react-native';
 import { useUser } from '../contexts/UserContext';
-import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../Services/supabase';
+import { useTheme } from '../contexts/ThemeContext'; // 👈 Importa o tema
 
 export default function PerfilScreen({ navigation }) {
   const { user, logout, setUser } = useUser();
+  const { theme } = useTheme(); // 👈 Acessa o tema atual (claro/escuro)
 
   useEffect(() => {
     if (!user) {
@@ -35,9 +37,8 @@ export default function PerfilScreen({ navigation }) {
     ]);
   };
 
-  const goToHistorico = () => {
-    navigation.navigate('Historico');
-  };
+  const goToHistorico = () => navigation.navigate('Historico');
+  const goToSettings = () => navigation.navigate('Settings');
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -124,15 +125,29 @@ export default function PerfilScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.headerBackground} />
+    <ScrollView
+      style={[
+        styles.container,
+        { backgroundColor: theme.mode === 'dark' ? '#1a1a1a' : '#ffe8e0' }, 
+      ]}
+    >
+      <View
+        style={[
+          styles.headerBackground,
+          { backgroundColor: theme.mode === 'dark' ? '#333' : '#FF7043' },
+        ]}
+      />
 
       <View style={styles.profileCard}>
         <View style={styles.imageContainer}>
           {user?.avatar ? (
             <Image source={{ uri: user.avatar }} style={styles.profileImage} resizeMode="cover" />
           ) : (
-            <MaterialIcons name="account-circle" size={110} color="#FFB300" />
+            <MaterialIcons
+              name="account-circle"
+              size={110}
+              color={theme.mode === 'dark' ? '#FFB74D' : '#FFB300'} // 👈 ligeiro ajuste de cor no dark mode
+            />
           )}
         </View>
 
@@ -160,6 +175,11 @@ export default function PerfilScreen({ navigation }) {
           <Text style={styles.historyText}> Ver Histórico de Compras</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
+          <Ionicons name="settings" size={20} color="#4E342E" />
+          <Text style={styles.settingsText}> Configurações</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={20} color="#FFF" />
           <Text style={styles.logoutText}> Sair da Conta</Text>
@@ -170,9 +190,8 @@ export default function PerfilScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffe8e0' },
+  container: { flex: 1 },
   headerBackground: {
-    backgroundColor: '#FF7043',
     height: 220,
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
@@ -229,7 +248,7 @@ const styles = StyleSheet.create({
   },
   historyButton: {
     flexDirection: 'row',
-    backgroundColor:'#fa9778',
+    backgroundColor: '#fa9778',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -239,6 +258,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   historyText: {
+    color: '#4E342E',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  settingsButton: {
+    flexDirection: 'row',
+    backgroundColor: '#FFCC80',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginBottom: 15,
+    width: '80%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsText: {
     color: '#4E342E',
     fontWeight: 'bold',
     fontSize: 16,

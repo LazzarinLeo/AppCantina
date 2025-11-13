@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../contexts/CartContext';
 import { WalletContext } from '../contexts/WalletContext';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../contexts/ThemeContext'; // 👈 Import do tema
 
 const Produtos = require('../Services/Mock.json');
 
@@ -27,14 +28,16 @@ export default function ProdutosScreen() {
   const navigation = useNavigation();
   const { addToCart, cartItems } = useContext(CartContext);
   const { saldo, tickets } = useContext(WalletContext);
+  const { theme } = useTheme(); // 👈 usa o contexto
 
   const heartScales = useRef({}).current;
+  const buttonScales = useRef({}).current;
+
   const getHeartScale = (id) => {
     if (!heartScales[id]) heartScales[id] = new Animated.Value(1);
     return heartScales[id];
   };
 
-  const buttonScales = useRef({}).current;
   const getButtonScale = (id) => {
     if (!buttonScales[id]) buttonScales[id] = new Animated.Value(1);
     return buttonScales[id];
@@ -59,7 +62,7 @@ export default function ProdutosScreen() {
   };
 
   const Header = () => (
-    <View style={styles.header}>
+    <View style={[styles.header, { backgroundColor: theme.mode === 'dark' ? '#FF7A50' : '#FF7A50' }]}>
       <View style={{ flex: 1 }}>
         <Text style={styles.headerTitle}>Minha Loja</Text>
         <Text style={styles.headerSubtitle}>Produtos selecionados para você</Text>
@@ -92,7 +95,15 @@ export default function ProdutosScreen() {
     const buttonScale = getButtonScale(item.id);
 
     return (
-      <View style={[styles.card, { width: CARD_WIDTH }]}>
+      <View
+        style={[
+          styles.card,
+          {
+            width: CARD_WIDTH,
+            backgroundColor: theme.mode === 'dark' ? '#1E1E1E' : '#fff',
+          },
+        ]}
+      >
         <View style={styles.imageWrap}>
           <Image source={{ uri: item.imagem }} style={styles.imagem} resizeMode="cover" />
           <View style={styles.priceTag}>
@@ -109,17 +120,31 @@ export default function ProdutosScreen() {
                 name={isFavorito ? 'heart' : 'heart-outline'}
                 size={20}
                 color={isFavorito ? '#E53935' : '#fff'}
-                style={isFavorito ? styles.heartFilled : styles.heartOutline}
               />
             </Animated.View>
           </Pressable>
         </View>
 
         <View style={styles.info}>
-          <Text numberOfLines={2} style={styles.nome}>{item.nome}</Text>
+          <Text
+            numberOfLines={2}
+            style={[
+              styles.nome,
+              { color: theme.mode === 'dark' ? '#fff' : '#3E2723' },
+            ]}
+          >
+            {item.nome}
+          </Text>
 
           <View style={styles.row}>
-            <Text style={styles.precoSmall}>R$ {item.preco.toFixed(2)}</Text>
+            <Text
+              style={[
+                styles.precoSmall,
+                { color: theme.mode === 'dark' ? '#80CBC4' : '#009688' },
+              ]}
+            >
+              R$ {item.preco.toFixed(2)}
+            </Text>
 
             <Pressable
               onPress={() => addToCart(item)}
@@ -140,9 +165,23 @@ export default function ProdutosScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.mode === 'dark' ? '#000' : '#f8f8f8',
+        },
+      ]}
+    >
       <Header />
-      <Text style={styles.titulo}>Catálogo</Text>
+      <Text
+        style={[
+          styles.titulo,
+          { color: theme.mode === 'dark' ? '#fff' : '#3E2723' },
+        ]}
+      >
+        Catálogo
+      </Text>
 
       <FlatList
         data={Produtos}
@@ -157,14 +196,13 @@ export default function ProdutosScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9F4', paddingHorizontal: 16 },
+  container: { flex: 1, paddingHorizontal: 16 },
   header: {
     marginTop: 40,
     marginBottom: 8,
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 14,
-    backgroundColor: '#FF7A50',
     flexDirection: 'row',
     alignItems: 'center',
     elevation: 6,
@@ -193,13 +231,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   badgeText: { color: '#E53935', fontWeight: '700', fontSize: 12 },
-
-  titulo: { fontSize: 22, fontWeight: '800', color: '#3E2723', marginTop: 16, marginBottom: 8 },
-
+  titulo: { fontSize: 22, fontWeight: '800', marginTop: 16, marginBottom: 8 },
   lista: { paddingBottom: 30, paddingTop: 6, gap: 12 },
-
   card: {
-    backgroundColor: '#fff',
     borderRadius: 14,
     margin: CARD_MARGIN / 2,
     overflow: 'hidden',
@@ -209,10 +243,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
-
   imageWrap: { position: 'relative', backgroundColor: '#f5f5f5' },
   imagem: { width: '100%', height: 140 },
-
   priceTag: {
     position: 'absolute',
     left: 8,
@@ -223,7 +255,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   priceTagText: { color: '#fff', fontWeight: '700', fontSize: 12 },
-
   favWrap: {
     position: 'absolute',
     right: 8,
@@ -232,15 +263,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 6,
   },
-  heartFilled: { textShadowColor: '#fff2' },
-  heartOutline: { opacity: 0.95 },
-
   info: { padding: 10 },
-  nome: { color: '#3E2723', fontWeight: '700', fontSize: 14, marginBottom: 8 },
-
+  nome: { fontWeight: '700', fontSize: 14, marginBottom: 8 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  precoSmall: { color: '#009688', fontWeight: '800', fontSize: 14 },
-
+  precoSmall: { fontWeight: '800', fontSize: 14 },
   addButton: {
     backgroundColor: '#FF7043',
     paddingVertical: 8,

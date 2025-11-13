@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Alert, StyleSheet } from 'react-native';
 import { supabase } from '../Services/supabase';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function LoginScreen({ navigation }) {
   const [identificador, setIdentificador] = useState('');
   const [senha, setSenha] = useState('');
   const { login } = useUser();
+  const { theme } = useTheme();
 
   async function fazerLogin() {
     if (!identificador || !senha) {
@@ -31,7 +33,6 @@ export default function LoginScreen({ navigation }) {
       }
 
       login(user);
-
       Alert.alert('Login realizado com sucesso!');
       navigation.navigate('Home');
     } catch (err) {
@@ -40,16 +41,19 @@ export default function LoginScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Cantina Escolar</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>Cantina Escolar</Text>
 
       <TextInput
         placeholder="Email ou Nome de Usuário"
         value={identificador}
         onChangeText={setIdentificador}
         autoCapitalize="none"
-        style={styles.input}
-        placeholderTextColor="#A1887F"
+        style={[
+          styles.input,
+          { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border },
+        ]}
+        placeholderTextColor={theme.colors.placeholder}
       />
 
       <TextInput
@@ -57,18 +61,24 @@ export default function LoginScreen({ navigation }) {
         value={senha}
         onChangeText={setSenha}
         secureTextEntry
-        style={styles.input}
-        placeholderTextColor="#A1887F"
+        style={[
+          styles.input,
+          { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border },
+        ]}
+        placeholderTextColor={theme.colors.placeholder}
       />
 
-      <TouchableOpacity style={styles.button} onPress={fazerLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: theme.colors.button }]}
+        onPress={fazerLogin}
+      >
+        <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>Entrar</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Singin')}>
-        <Text style={styles.link}>
+        <Text style={[styles.link, { color: theme.colors.link }]}>
           Ainda não tem conta?{' '}
-          <Text style={styles.highlight}>Cadastre-se</Text>
+          <Text style={[styles.highlight, { color: theme.colors.highlight }]}>Cadastre-se</Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -78,7 +88,6 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffe8e0',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 30,
@@ -86,24 +95,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#6D4C41',
     marginBottom: 40,
     textAlign: 'center',
   },
   input: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#D7CCC8',
     padding: 12,
     marginBottom: 15,
-    color: '#6D4C41',
     fontSize: 16,
   },
   button: {
     width: '100%',
-    backgroundColor:'#FF7043',
     paddingVertical: 14,
     borderRadius: 8,
     marginTop: 10,
@@ -111,19 +115,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
   link: {
-    color: '#6D4C41',
     marginTop: 20,
     textAlign: 'center',
     fontSize: 15,
   },
   highlight: {
-    color: '#FF7043',
     fontWeight: 'bold',
   },
-  
 });

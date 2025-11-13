@@ -6,11 +6,13 @@ import { WalletContext } from '../contexts/WalletContext';
 import { useUser } from '../contexts/UserContext';
 import { criarHistoricoCompra } from '../Services/HistoricoCompras';
 import { adicionarItensCompra } from '../Services/HistoricoItens';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function CarrinhoScreen({ navigation }) {
   const { cartItems, removeFromCart, checkout } = useContext(CartContext);
   const { saldo } = useContext(WalletContext);
   const { user } = useUser();
+  const { theme } = useTheme();
 
   const total = cartItems.reduce(
     (acc, item) => acc + item.preco * (item.quantidade || 1),
@@ -51,7 +53,12 @@ export default function CarrinhoScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.mode === 'dark' ? '#1a1a1a' : '#F8FAFC' },
+      ]}
+    >
       <View style={styles.headerBar}>
         <Text style={styles.headerText}>🛒 Seu Carrinho</Text>
       </View>
@@ -66,7 +73,12 @@ export default function CarrinhoScreen({ navigation }) {
           data={cartItems}
           keyExtractor={item => item.cartId}
           renderItem={({ item }) => (
-            <View style={styles.itemCard}>
+            <View
+              style={[
+                styles.itemCard,
+                { backgroundColor: theme.mode === 'dark' ? '#1c1c1c' : '#FFFFFF' },
+              ]}
+            >
               <View style={styles.itemInfo}>
                 <Text style={styles.itemName}>{item.nome}</Text>
                 <Text style={styles.itemPrice}>R$ {item.preco.toFixed(2)}</Text>
@@ -110,7 +122,6 @@ export default function CarrinhoScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
     paddingHorizontal: 18,
     paddingBottom: 10,
   },
@@ -143,7 +154,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
