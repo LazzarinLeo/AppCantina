@@ -9,7 +9,9 @@ import { adicionarItensCompra } from '../Services/HistoricoItens';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function CarrinhoScreen({ navigation }) {
+  
   const { cartItems, removeFromCart, checkout } = useContext(CartContext);
+  const { descontarSaldo } = useContext(WalletContext);
   const { saldo } = useContext(WalletContext);
   const { user } = useUser();
   const { theme } = useTheme();
@@ -31,6 +33,9 @@ export default function CarrinhoScreen({ navigation }) {
     }
 
     try {
+
+      await descontarSaldo(total);
+
       const user_id = user?.id;
       if (!user_id) {
         Alert.alert('Erro', 'Usuário não autenticado.');
