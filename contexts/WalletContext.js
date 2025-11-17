@@ -29,23 +29,33 @@ export const WalletProvider = ({ usuarioId, children }) => {
   }
 
   const descontarSaldo = async (valor) => {
-    try {
-      const novoSaldo = saldo - valor;
-  
-      const { error } = await supabase
+    setSaldo(prev => {
+      const novoSaldo = prev - valor;
+      supabase
         .from('carteiras')
         .update({ saldo: novoSaldo })
-        .eq('usuario_id', usuarioId);
-  
-      if (error) throw error;
-  
-      setSaldo(novoSaldo);
-    } catch (err) {
-      console.error('Erro ao descontar saldo:', err);
-      Alert.alert('Erro', 'Não foi possível atualizar seu saldo.');
-    }
+        .eq('usuario_id', usuarioId)
+        .then(({ error }) => {
+          if (error) console.error('Erro ao atualizar saldo no banco:', error);
+        });
+      return novoSaldo;
+    });
   };
-  
+
+  const descontarTickets = async (valor) => {
+    setTickets(prev => {
+      const novoValor = prev - valor;
+      supabase
+        .from("carteiras")
+        .update({ ticket: novoValor })
+        .eq("usuario_id", usuarioId)
+        .then(({ error }) => {
+          if (error) console.error("Erro ao atualizar tickets no banco:", error);
+        });
+      return novoValor;
+    });
+  };
+
   const incrementarTicket = () => {
     setTickets((prevTickets) => {
       const novoTicket = prevTickets + 1;
@@ -107,6 +117,7 @@ export const WalletProvider = ({ usuarioId, children }) => {
         carregarCarteira,
         incrementarTicket,
         descontarSaldo,
+        descontarTickets,
       }}
     >
       {children}
