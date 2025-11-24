@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Switch } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useUser } from '../contexts/UserContext';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const { theme, toggleTheme } = useTheme();
+  const { user } = useUser(); // pega o usuário logado
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -20,6 +22,15 @@ export default function SettingsScreen() {
           value={theme.mode === 'dark'}
         />
       </View>
+
+      {user?.admin && (
+        <TouchableOpacity
+          style={[styles.adminButton, { backgroundColor: '#e74c3c' }]}
+          onPress={() => navigation.navigate('Admin')}
+        >
+          <Text style={[styles.adminButtonText]}>Painel Admin</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -42,5 +53,16 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 18,
+  },
+  adminButton: {
+    marginTop: 30,
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  adminButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });

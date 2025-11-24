@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  Text,
-  Alert,
-  StyleSheet,
-} from "react-native";
+import { View, TextInput, TouchableOpacity, Text, Alert, StyleSheet } from "react-native";
 import { supabase } from "../Services/supabase";
 import { useUser } from "../contexts/UserContext";
 import { useTheme } from "../contexts/ThemeContext";
@@ -19,8 +12,7 @@ export default function SigninScreen({ navigation }) {
   const { theme } = useTheme();
 
   const emailValido = (email) => {
-    const regex = /^[^\s@]+@estudante\.sesisenai\.org\.br$/;
-    return regex.test(email);
+    return email.endsWith("@edu.sc.senai.br") || email.endsWith("@estudante.sesisenai.org.br");
   };
 
   async function cadastrarUsuario() {
@@ -28,31 +20,29 @@ export default function SigninScreen({ navigation }) {
       Alert.alert("Preencha todos os campos!");
       return;
     }
-                                        //Malcon Ama criança
+
     if (!emailValido(email)) {
       Alert.alert("Digite um email válido!");
       return;
     }
 
     try {
-      const { data: existingUser, error: errorCheck } = await supabase
+      const { data: existingUser } = await supabase
         .from("usuarios")
         .select("*")
         .eq("email", email);
-
-      if (errorCheck) {
-        Alert.alert("Erro ao verificar usuário", errorCheck.message);
-        return;
-      }
 
       if (existingUser.length > 0) {
         Alert.alert("Email já cadastrado!");
         return;
       }
 
+      // Define admin pelo domínio no momento do cadastro
+      const isAdmin = email.endsWith("@edu.sc.senai.br");
+
       const { data, error } = await supabase
         .from("usuarios")
-        .insert([{ nome, email, senha }])
+        .insert([{ nome, email, senha, admin: isAdmin }])
         .select()
         .single();
 
@@ -73,78 +63,42 @@ export default function SigninScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>
-        Cadastro de Usuário
-      </Text>
+      <Text style={[styles.title, { color: theme.colors.text }]}>Cadastro de Usuário</Text>
 
-      {/* NOME */}
       <TextInput
         placeholder="Nome"
         value={nome}
         onChangeText={setNome}
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.colors.inputBackground,
-            color: theme.colors.text,
-            borderColor: theme.colors.border,
-          },
-        ]}
+        style={[styles.input, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border }]}
         placeholderTextColor={theme.colors.placeholder}
       />
 
-      {/* EMAIL */}
       <TextInput
         placeholder="Email institucional"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.colors.inputBackground,
-            color: theme.colors.text,
-            borderColor: theme.colors.border,
-          },
-        ]}
+        style={[styles.input, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border }]}
         placeholderTextColor={theme.colors.placeholder}
       />
 
-      {/* SENHA */}
       <TextInput
         placeholder="Senha"
         value={senha}
         onChangeText={setSenha}
         secureTextEntry
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.colors.inputBackground,
-            color: theme.colors.text,
-            borderColor: theme.colors.border,
-          },
-        ]}
+        style={[styles.input, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border }]}
         placeholderTextColor={theme.colors.placeholder}
       />
 
-      {/* BOTÃO */}
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: theme.colors.button }]}
-        onPress={cadastrarUsuario}
-      >
-        <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>
-          Cadastrar
-        </Text>
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.colors.button }]} onPress={cadastrarUsuario}>
+        <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>Cadastrar</Text>
       </TouchableOpacity>
 
-      {/* IR PARA LOGIN */}
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={[styles.link, { color: theme.colors.link }]}>
-          Já tem conta?{" "}
-          <Text style={[styles.highlight, { color: theme.colors.highlight }]}>
-            Faça login
-          </Text>
+          Já tem conta? <Text style={[styles.highlight, { color: theme.colors.highlight }]}>Faça login</Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -193,3 +147,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+

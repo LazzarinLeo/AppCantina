@@ -5,6 +5,7 @@ import {
   DarkTheme,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AdminScreen from './screens/AdminScreen';
 
 // 🧩 Contextos globais
 import { UserProvider, UserContext } from './contexts/UserContext';
@@ -31,29 +32,29 @@ function AppRoutes() {
   const navigationTheme =
     theme.mode === 'dark'
       ? {
-          ...DarkTheme,
-          colors: {
-            ...DarkTheme.colors,
-            background: theme.colors.background,
-            card: theme.colors.card,
-            text: theme.colors.text,
-            primary: theme.colors.button,
-            border: theme.colors.border,
-            notification: theme.colors.highlight,
-          },
-        }
+        ...DarkTheme,
+        colors: {
+          ...DarkTheme.colors,
+          background: theme.colors.background,
+          card: theme.colors.card,
+          text: theme.colors.text,
+          primary: theme.colors.button,
+          border: theme.colors.border,
+          notification: theme.colors.highlight,
+        },
+      }
       : {
-          ...DefaultTheme,
-          colors: {
-            ...DefaultTheme.colors,
-            background: theme.colors.background,
-            card: theme.colors.card,
-            text: theme.colors.text,
-            primary: theme.colors.button,
-            border: theme.colors.border,
-            notification: theme.colors.highlight,
-          },
-        };
+        ...DefaultTheme,
+        colors: {
+          ...DefaultTheme.colors,
+          background: theme.colors.background,
+          card: theme.colors.card,
+          text: theme.colors.text,
+          primary: theme.colors.button,
+          border: theme.colors.border,
+          notification: theme.colors.highlight,
+        },
+      };
 
   return (
     <WalletProvider usuarioId={user?.id}>
@@ -66,9 +67,14 @@ function AppRoutes() {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="Singin"
+              name="Signin"
               component={SinginScreen}
               options={{ title: 'Cadastro' }}
+            />
+            <Stack.Screen
+              name="Admin"
+              component={AdminScreen}
+              options={{ title: 'Painel de Admin' }}
             />
             <Stack.Screen
               name="Home"

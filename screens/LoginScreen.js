@@ -49,10 +49,7 @@ export default function LoginScreen({ navigation }) {
         value={identificador}
         onChangeText={setIdentificador}
         autoCapitalize="none"
-        style={[
-          styles.input,
-          { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border },
-        ]}
+        style={[styles.input, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border }]}
         placeholderTextColor={theme.colors.placeholder}
       />
 
@@ -61,24 +58,17 @@ export default function LoginScreen({ navigation }) {
         value={senha}
         onChangeText={setSenha}
         secureTextEntry
-        style={[
-          styles.input,
-          { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border },
-        ]}
+        style={[styles.input, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border }]}
         placeholderTextColor={theme.colors.placeholder}
       />
 
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: theme.colors.button }]}
-        onPress={fazerLogin}
-      >
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.colors.button }]} onPress={fazerLogin}>
         <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>Entrar</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Singin')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Signin')}>
         <Text style={[styles.link, { color: theme.colors.link }]}>
-          Ainda não tem conta?{' '}
-          <Text style={[styles.highlight, { color: theme.colors.highlight }]}>Cadastre-se</Text>
+          Ainda não tem conta? <Text style={[styles.highlight, { color: theme.colors.highlight }]}>Cadastre-se</Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -127,3 +117,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
