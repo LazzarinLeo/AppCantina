@@ -41,8 +41,8 @@ export default function PerfilScreen({ navigation }) {
   const goToSettings = () => navigation.navigate('Settings');
 
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissionResult.status !== 'granted') {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permission.status !== 'granted') {
       Alert.alert('Permissão negada', 'Você precisa permitir o acesso à galeria.');
       return;
     }
@@ -61,8 +61,8 @@ export default function PerfilScreen({ navigation }) {
   };
 
   const takePhoto = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (permissionResult.status !== 'granted') {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (permission.status !== 'granted') {
       Alert.alert('Permissão negada', 'Você precisa permitir o acesso à câmera.');
       return;
     }
@@ -81,9 +81,9 @@ export default function PerfilScreen({ navigation }) {
 
   const uploadImageToSupabase = async (uri) => {
     try {
-      const fileExt = uri.split('.').pop().toLowerCase();
-      const mimeType = fileExt === 'png' ? 'image/png' : 'image/jpeg';
-      const fileName = `${user.id}.${fileExt}`;
+      const ext = uri.split('.').pop().toLowerCase();
+      const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+      const fileName = `${user.id}.${ext}`;
       const filePath = `avatars/${fileName}`;
 
       const response = await fetch(uri);
@@ -92,7 +92,7 @@ export default function PerfilScreen({ navigation }) {
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, arrayBuffer, {
-          contentType: mimeType,
+          contentType: mime,
           upsert: true,
         });
 
@@ -105,7 +105,7 @@ export default function PerfilScreen({ navigation }) {
       const avatarUrl = publicUrlData.publicUrl;
       await updateUserAvatar(avatarUrl);
     } catch (error) {
-      console.error('Erro ao fazer upload:', error.message);
+      console.error('Erro no upload:', error.message);
     }
   };
 
@@ -202,6 +202,15 @@ export default function PerfilScreen({ navigation }) {
           </Text>
         )}
 
+        {/* 🔥 BOTÃO DA CARTEIRA AQUI */}
+        <TouchableOpacity
+          style={styles.walletButton}
+          onPress={() => navigation.navigate('Carteira')}
+        >
+          <Ionicons name="wallet" size={20} color="#4E342E" />
+          <Text style={styles.walletText}> Minha Carteira</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.historyButton} onPress={goToHistorico}>
           <FontAwesome5 name="receipt" size={18} color="#4E342E" />
           <Text style={styles.historyText}> Ver Histórico de Compras</Text>
@@ -273,6 +282,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 25,
   },
+
+  /* 🔥 BOTÃO DA CARTEIRA */
+  walletButton: {
+    flexDirection: 'row',
+    backgroundColor: '#FFD8A6',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginBottom: 15,
+    width: '80%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  walletText: {
+    color: '#4E342E',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
   historyButton: {
     flexDirection: 'row',
     backgroundColor: '#fa9778',
@@ -289,6 +317,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+
   settingsButton: {
     flexDirection: 'row',
     backgroundColor: '#FFCC80',
@@ -305,6 +334,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+
   logoutButton: {
     flexDirection: 'row',
     backgroundColor: '#E53935',

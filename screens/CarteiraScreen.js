@@ -1,74 +1,89 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, TextInput, Alert, StyleSheet } from 'react-native';
+import React, { useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+} from 'react-native';
+import { WalletContext } from '../contexts/WalletContext';
 import { supabase } from '../Services/supabase';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function CarteiraScreen() {
   const { user } = useUser();
-  const usuarioId = user.id;
+  const usuarioId = user?.id;
 
-  const [saldo, setSaldo] = useState(0);
+  const { saldo, carregarCarteira } = useContext(WalletContext);
+  const { theme } = useTheme();
+
   const [valor, setValor] = useState('');
-
-  async function carregarSaldo() {
-    try {
-      const { data, error } = await supabase
-        .from('carteiras')
-        .select('saldo')
-        .eq('usuario_id', usuarioId)
-        .single();
-
-      if (error) throw error;
-
-      setSaldo(data.saldo);
-
-    } catch (error) {
-      console.error('Erro ao carregar saldo:', error);
-      Alert.alert('Erro', 'Não foi possível carregar o saldo.');
-    }
-  }
 
   async function adicionarSaldo() {
     const valorNumerico = parseFloat(valor);
+
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
-      Alert.alert('Erro', 'Digite um valor válido.');
+      Alert.alert("Erro", "Digite um valor válido.");
       return;
     }
 
-    const { error } = await supabase.rpc('alterar_saldo', {
+    const { error } = await supabase.rpc("alterar_saldo", {
       usuario_id: usuarioId,
       valor: valorNumerico,
     });
 
     if (error) {
-      console.error('Erro ao adicionar saldo:', error);
-      Alert.alert('Erro', 'Não foi possível atualizar o saldo.');
+      console.error("Erro ao adicionar saldo:", error);
+      Alert.alert("Erro", "Não foi possível atualizar o saldo.");
       return;
     }
 
-    Alert.alert('Sucesso', `Adicionado R$${valorNumerico.toFixed(2)} à sua carteira.`);
-    setValor('');
-    carregarSaldo();
+    Alert.alert("Sucesso", `Adicionado R$${valorNumerico.toFixed(2)} à sua carteira.`);
+    setValor("");
+    carregarCarteira();
   }
 
-  useEffect(() => {
-    carregarSaldo();
-  }, []);
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>💳 Sua Carteira</Text>
-      <Text style={styles.saldo}>Saldo atual: R$ {saldo.toFixed(2)}</Text>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.background },
+      ]}
+    >
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        💳 Minha Carteira
+      </Text>
+
+      <Text style={[styles.saldo, { color: theme.colors.text }]}>
+        Saldo atual: <Text style={{ fontWeight: "bold" }}>R$ {saldo.toFixed(2)}</Text>
+      </Text>
 
       <TextInput
-        style={styles.input}
         placeholder="Digite o valor para adicionar"
         keyboardType="numeric"
         value={valor}
         onChangeText={setValor}
+        placeholderTextColor={theme.colors.placeholder}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.text,
+            borderColor: theme.colors.border,
+          },
+        ]}
       />
 
-      <Button title="Adicionar Saldo" onPress={adicionarSaldo} />
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: theme.colors.button }]}
+        onPress={adicionarSaldo}
+      >
+        <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>
+          Adicionar Saldo
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -76,26 +91,37 @@ export default function CarteiraScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#fff'
+    padding: 25,
+    justifyContent: "center",
   },
-  titulo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center'
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 25,
   },
   saldo: {
     fontSize: 20,
-    marginBottom: 30,
-    textAlign: 'center'
+    textAlign: "center",
+    marginBottom: 40,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
+    width: "100%",
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 20,
+    fontSize: 16,
+  },
+  button: {
+    width: "100%",
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    elevation: 3,
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

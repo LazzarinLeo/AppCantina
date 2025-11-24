@@ -20,6 +20,7 @@ import HomeScreen from './screens/HomeScreen';
 import PerfilScreen from './screens/PerfilScreen';
 import HistoricoScreen from './screens/HistoricoScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import CarteiraScreen from './screens/CarteiraScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -95,6 +96,11 @@ function AppRoutes() {
               name="Settings"
               component={SettingsScreen}
               options={{ title: 'Configurações' }}
+              />
+            <Stack.Screen
+              name="Carteira"
+              component={CarteiraScreen}
+              options={{ title: 'Minha Carteira' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
