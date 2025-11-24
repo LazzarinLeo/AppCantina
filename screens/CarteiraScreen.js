@@ -23,27 +23,42 @@ export default function CarteiraScreen() {
 
   async function adicionarSaldo() {
     const valorNumerico = parseFloat(valor);
-
+  
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
       Alert.alert("Erro", "Digite um valor válido.");
       return;
     }
-
-    const { error } = await supabase.rpc("alterar_saldo", {
-      usuario_id: usuarioId,
-      valor: valorNumerico,
-    });
-
-    if (error) {
-      console.error("Erro ao adicionar saldo:", error);
+  
+    try {
+      const { data: carteiraData, error: fetchError } = await supabase
+        .from('carteiras')
+        .select('saldo')
+        .eq('usuario_id', usuarioId)
+        .single();
+  
+      if (fetchError && fetchError.code !== 'PGRST116') { 
+        throw fetchError;
+      }
+  
+      const saldoAtual = carteiraData?.saldo || 0;
+      const novoSaldo = saldoAtual + valorNumerico;
+      const { error } = await supabase
+        .from('carteiras')
+        .upsert({ usuario_id: usuarioId, saldo: novoSaldo }, { onConflict: 'usuario_id' });
+  
+      if (error) {
+        throw error;
+      }
+  
+      Alert.alert("Sucesso", `Adicionado R$${valorNumerico.toFixed(2)} à sua carteira.`);
+      setValor("");
+      carregarCarteira();
+    } catch (err) {
+      console.error("Erro ao adicionar saldo:", err);
       Alert.alert("Erro", "Não foi possível atualizar o saldo.");
-      return;
     }
-
-    Alert.alert("Sucesso", `Adicionado R$${valorNumerico.toFixed(2)} à sua carteira.`);
-    setValor("");
-    carregarCarteira();
   }
+  
 
   return (
     <View

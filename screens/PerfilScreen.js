@@ -201,14 +201,12 @@ export default function PerfilScreen({ navigation }) {
             Carregando...
           </Text>
         )}
-
-        {/* 🔥 BOTÃO DA CARTEIRA AQUI */}
         <TouchableOpacity
           style={styles.walletButton}
           onPress={() => navigation.navigate('Carteira')}
         >
           <Ionicons name="wallet" size={20} color="#4E342E" />
-          <Text style={styles.walletText}> Minha Carteira</Text>
+          <Text style={styles.walletText}> Adicionar Saldo</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.historyButton} onPress={goToHistorico}>
