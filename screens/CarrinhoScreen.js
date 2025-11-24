@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
-import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Platform, Modal, TextInput
+import { 
+  View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Platform, Modal, TextInput 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../contexts/CartContext';
@@ -18,7 +18,7 @@ export default function CarrinhoScreen({ navigation }) {
   const [ticketsUsados, setTicketsUsados] = React.useState(0);
   const [androidResolve, setAndroidResolve] = React.useState(null);
 
-  const { cartItems, removeFromCart, checkout } = useContext(CartContext);
+  const { cartItems, removeFromCart, clearCart } = useContext(CartContext);
   const { tickets, descontarTickets, saldo, descontarSaldo } = useContext(WalletContext);
   const { user } = useUser();
   const { theme } = useTheme();
@@ -55,13 +55,13 @@ export default function CarrinhoScreen({ navigation }) {
         // Android
         setInputTickets("");
         setModalVisible(true);
-
+  
         // define resolve no estado
         setAndroidResolve(() => resolve);
       }
     });
   };
-
+  
 
   const confirmarTicketsAndroid = () => {
     const qtd = Number(inputTickets);
@@ -73,7 +73,7 @@ export default function CarrinhoScreen({ navigation }) {
     if (androidResolve) {
       androidResolve(qtd);
       setAndroidResolve(null);
-    }
+  }  
   };
 
   // Aplicar desconto com tickets
@@ -97,49 +97,54 @@ export default function CarrinhoScreen({ navigation }) {
       Alert.alert('Carrinho vazio', 'Adicione produtos antes de finalizar.');
       return;
     }
-
+  
     // Calcula desconto baseado nos tickets usados
     const descontoPercentual = ticketsUsados * 5;
     const descontoAplicado = (total * descontoPercentual) / 100;
     const totalFinalCheckout = Math.max(total - descontoAplicado, 0);
-
+  
     if (saldo < totalFinalCheckout) {
       Alert.alert('Saldo insuficiente', 'Você não tem saldo suficiente.');
       return;
     }
-
+  
     try {
       if (ticketsUsados > 0) {
         await descontarTickets(ticketsUsados);
       }
+      
+      // 1. DESCONTA SALDO CORRETAMENTE (este é o desconto no Supabase e a primeira atualização de estado)
       await descontarSaldo(totalFinalCheckout);
-
+  
       const user_id = user?.id;
       if (!user_id) {
         Alert.alert('Erro', 'Usuário não autenticado.');
         return;
       }
-
+  
+      // 2. REGISTRA A COMPRA
       const compra = await criarHistoricoCompra(
         user_id,
         totalFinalCheckout,
         'concluida',
         'Carteira'
       );
-
+  
       if (!compra?.id) throw new Error('Erro ao criar compra');
-
+  
       await adicionarItensCompra(compra.id, cartItems);
-
-      checkout();
+  
+      // 3. LIMPA O CARRINHO
+      clearCart(); // <-- TROCADO checkout() POR clearCart()
+      
       navigation.goBack();
-
+  
     } catch (error) {
       console.error('Erro ao finalizar compra:', error);
       Alert.alert('Erro', 'Não foi possível finalizar sua compra.');
     }
   };
-
+  
 
   return (
     <View style={[styles.container, { backgroundColor: theme.mode === 'dark' ? '#1a1a1a' : '#F8FAFC' }]}>
@@ -217,22 +222,22 @@ export default function CarrinhoScreen({ navigation }) {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 10, width: '80%' }}>
-            <Text style={{ fontSize: 16, marginBottom: 10 }}>Você possui {tickets} tickets. Quantos deseja usar?</Text>
+        <View style={{ flex:1, justifyContent:'center', alignItems:'center', backgroundColor:'rgba(0,0,0,0.5)' }}>
+          <View style={{ backgroundColor:'#fff', padding:20, borderRadius:10, width:'80%' }}>
+            <Text style={{fontSize:16, marginBottom:10}}>Você possui {tickets} tickets. Quantos deseja usar?</Text>
             <TextInput
-              keyboardType="numeric"
-              placeholder="Digite a quantidade"
-              value={inputTickets}
-              onChangeText={setInputTickets}
-              style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginBottom: 15 }}
-            />
+    keyboardType="numeric"
+  placeholder="Digite a quantidade"
+  value={inputTickets}
+  onChangeText={setInputTickets}
+  style={{ borderWidth:1, borderColor:'#ccc', borderRadius:5, padding:10, marginBottom:15 }}
+/>
 
             <TouchableOpacity
               onPress={confirmarTicketsAndroid}
-              style={{ backgroundColor: '#FF7043', padding: 12, borderRadius: 8, alignItems: 'center' }}
+              style={{backgroundColor:'#FF7043', padding:12, borderRadius:8, alignItems:'center'}}
             >
-              <Text style={{ color: '#fff', fontWeight: '700' }}>Usar Tickets</Text>
+              <Text style={{color:'#fff', fontWeight:'700'}}>Usar Tickets</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -242,119 +247,24 @@ export default function CarrinhoScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 18,
-    addingBottom: 10
-  },
-  headerBar: {
-    backgroundColor: '#FF7043',
-    paddingVertical: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    marginBottom: 16,
-    elevation: 3
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#fff',
-    textAlign: 'center'
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80
-  },
-  emptyText: {
-    fontSize: 18,
-    color: '#9E9E9E',
-    marginTop: 10
-  },
-  itemCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2
-  },
-  itemInfo: {
-    flex: 1,
-    marginRight: 12
-  },
-  itemName: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#37474F',
-    marginBottom: 2
-  },
-  itemPrice: {
-    fontSize: 15,
-    color: '#43A047',
-    marginBottom: 2
-  },
-  itemQty: {
-    fontSize: 14,
-    color: '#757575'
-  },
-  removeButton: {
-    backgroundColor: '#E53935',
-    padding: 10,
-    borderRadius: 10
-  },
-  footer: {
-    marginTop: 'auto',
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderColor: '#ECEFF1'
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 4
-  },
-  saldo: {
-    fontSize: 15,
-    color: '#607D8B'
-  },
-  saldoValor: {
-    fontSize: 15,
-    color: '#607D8B',
-    fontWeight: '600'
-  },
-  totalLabel: {
-    fontSize: 18,
-    color: '#37474F',
-    fontWeight: '700'
-  },
-  totalValor: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FF7043'
-  },
-  checkoutButton: {
-    backgroundColor: '#FF7043',
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    elevation: 4
-  },
-  useTicketButton: {
-    backgroundColor: '#43A047',
-    paddingVertical: 12,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8
-  },
-  checkoutText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '700'
-  },
+  container: { flex: 1, paddingHorizontal: 18, paddingBottom: 10 },
+  headerBar: { backgroundColor: '#FF7043', paddingVertical: 16, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, marginBottom: 16, elevation: 3 },
+  headerText: { fontSize: 24, fontWeight: '700', color: '#fff', textAlign: 'center' },
+  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
+  emptyText: { fontSize: 18, color: '#9E9E9E', marginTop: 10 },
+  itemCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 14, padding: 16, marginBottom: 12, elevation: 2 },
+  itemInfo: { flex: 1, marginRight: 12 },
+  itemName: { fontSize: 17, fontWeight: '600', color: '#37474F', marginBottom: 2 },
+  itemPrice: { fontSize: 15, color: '#43A047', marginBottom: 2 },
+  itemQty: { fontSize: 14, color: '#757575' },
+  removeButton: { backgroundColor: '#E53935', padding: 10, borderRadius: 10 },
+  footer: { marginTop: 'auto', paddingTop: 14, borderTopWidth: 1, borderColor: '#ECEFF1' },
+  priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 4 },
+  saldo: { fontSize: 15, color: '#607D8B' },
+  saldoValor: { fontSize: 15, color: '#607D8B', fontWeight: '600' },
+  totalLabel: { fontSize: 18, color: '#37474F', fontWeight: '700' },
+  totalValor: { fontSize: 18, fontWeight: '700', color: '#FF7043' },
+  checkoutButton: { backgroundColor: '#FF7043', paddingVertical: 14, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 12, elevation: 4 },
+  useTicketButton: { backgroundColor: '#43A047', paddingVertical: 12, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  checkoutText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });
