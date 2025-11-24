@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   TextInput,
@@ -6,17 +6,17 @@ import {
   Text,
   Alert,
   StyleSheet,
-} from 'react-native';
-import { supabase } from '../Services/supabase';
-import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext'; // 👈 Import do tema
+} from "react-native";
+import { supabase } from "../Services/supabase";
+import { useUser } from "../contexts/UserContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function SigninScreen({ navigation }) {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const { login } = useUser();
-  const { theme } = useTheme(); // 👈 pega tema atual (dark ou light)
+  const { theme } = useTheme();
 
   const emailValido = (email) => {
     const regex = /^[^\s@]+@estudante\.sesisenai\.org\.br$/;
@@ -25,79 +25,59 @@ export default function SigninScreen({ navigation }) {
 
   async function cadastrarUsuario() {
     if (!nome || !email || !senha) {
-      Alert.alert('Preencha todos os campos!');
+      Alert.alert("Preencha todos os campos!");
       return;
     }
-
+                                        //Malcon Ama criança
     if (!emailValido(email)) {
-      Alert.alert('Digite um email válido!');
+      Alert.alert("Digite um email válido!");
       return;
     }
 
     try {
       const { data: existingUser, error: errorCheck } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', email);
+        .from("usuarios")
+        .select("*")
+        .eq("email", email);
 
       if (errorCheck) {
-        Alert.alert('Erro ao verificar usuário', errorCheck.message);
+        Alert.alert("Erro ao verificar usuário", errorCheck.message);
         return;
       }
 
       if (existingUser.length > 0) {
-        Alert.alert('Email já cadastrado!');
+        Alert.alert("Email já cadastrado!");
         return;
       }
 
       const { data, error } = await supabase
-        .from('usuarios')
+        .from("usuarios")
         .insert([{ nome, email, senha }])
         .select()
         .single();
 
       if (error) {
-        Alert.alert('Erro ao cadastrar', error.message);
+        Alert.alert("Erro ao cadastrar", error.message);
         return;
       }
 
-      // ✅ Criar carteira do usuário automaticamente
-      const { error: carteiraError } = await supabase
-        .from('carteiras')
-        .insert([{ usuario_id: data.id }]);
-
-      if (carteiraError) {
-        Alert.alert('Erro ao criar carteira', carteiraError.message);
-        return;
-      }
+      await supabase.from("carteiras").insert([{ usuario_id: data.id }]);
 
       login(data);
-      Alert.alert('Usuário cadastrado e logado com sucesso!');
-      setNome('');
-      setEmail('');
-      setSenha('');
-      navigation.navigate('Home');
+      Alert.alert("Usuário cadastrado com sucesso!");
+      navigation.navigate("Home");
     } catch (err) {
-      Alert.alert('Erro inesperado', err.message);
+      Alert.alert("Erro inesperado", err.message);
     }
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: theme.mode === 'dark' ? '#000' : '#ffe8e0' },
-      ]}
-    >
-      <Text
-        style={[
-          styles.title,
-          { color: theme.mode === 'dark' ? '#fff' : '#6D4C41' },
-        ]}
-      >
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
         Cadastro de Usuário
       </Text>
 
+      {/* NOME */}
       <TextInput
         placeholder="Nome"
         value={nome}
@@ -105,31 +85,33 @@ export default function SigninScreen({ navigation }) {
         style={[
           styles.input,
           {
-            backgroundColor: theme.mode === 'dark' ? '#1C1C1E' : '#fff',
-            color: theme.mode === 'dark' ? '#fff' : '#6D4C41',
-            borderColor: theme.mode === 'dark' ? '#333' : '#D7CCC8',
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.text,
+            borderColor: theme.colors.border,
           },
         ]}
-        placeholderTextColor={theme.mode === 'dark' ? '#aaa' : '#A1887F'}
+        placeholderTextColor={theme.colors.placeholder}
       />
 
+      {/* EMAIL */}
       <TextInput
-        placeholder="Email"
+        placeholder="Email institucional"
         value={email}
         onChangeText={setEmail}
-        keyboardType="email-address"
         autoCapitalize="none"
+        keyboardType="email-address"
         style={[
           styles.input,
           {
-            backgroundColor: theme.mode === 'dark' ? '#1C1C1E' : '#fff',
-            color: theme.mode === 'dark' ? '#fff' : '#6D4C41',
-            borderColor: theme.mode === 'dark' ? '#333' : '#D7CCC8',
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.text,
+            borderColor: theme.colors.border,
           },
         ]}
-        placeholderTextColor={theme.mode === 'dark' ? '#aaa' : '#A1887F'}
+        placeholderTextColor={theme.colors.placeholder}
       />
 
+      {/* SENHA */}
       <TextInput
         placeholder="Senha"
         value={senha}
@@ -138,38 +120,29 @@ export default function SigninScreen({ navigation }) {
         style={[
           styles.input,
           {
-            backgroundColor: theme.mode === 'dark' ? '#1C1C1E' : '#fff',
-            color: theme.mode === 'dark' ? '#fff' : '#6D4C41',
-            borderColor: theme.mode === 'dark' ? '#333' : '#D7CCC8',
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.text,
+            borderColor: theme.colors.border,
           },
         ]}
-        placeholderTextColor={theme.mode === 'dark' ? '#aaa' : '#A1887F'}
+        placeholderTextColor={theme.colors.placeholder}
       />
 
+      {/* BOTÃO */}
       <TouchableOpacity
-        style={[
-          styles.button,
-          { backgroundColor: theme.mode === 'dark' ? '#FF5722' : '#FF7043' },
-        ]}
+        style={[styles.button, { backgroundColor: theme.colors.button }]}
         onPress={cadastrarUsuario}
       >
-        <Text style={styles.buttonText}>Cadastrar</Text>
+        <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>
+          Cadastrar
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text
-          style={[
-            styles.link,
-            { color: theme.mode === 'dark' ? '#ddd' : '#6D4C41' },
-          ]}
-        >
-          Já tem conta?{' '}
-          <Text
-            style={[
-              styles.highlight,
-              { color: theme.mode === 'dark' ? '#FF7043' : '#FF7043' },
-            ]}
-          >
+      {/* IR PARA LOGIN */}
+      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <Text style={[styles.link, { color: theme.colors.link }]}>
+          Já tem conta?{" "}
+          <Text style={[styles.highlight, { color: theme.colors.highlight }]}>
             Faça login
           </Text>
         </Text>
@@ -181,18 +154,18 @@ export default function SigninScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 30,
   },
   title: {
     fontSize: 26,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 30,
-    textAlign: 'center',
+    textAlign: "center",
   },
   input: {
-    width: '100%',
+    width: "100%",
     borderRadius: 8,
     borderWidth: 1,
     padding: 12,
@@ -200,24 +173,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    width: '100%',
+    width: "100%",
     paddingVertical: 14,
     borderRadius: 8,
     marginTop: 10,
-    alignItems: 'center',
+    alignItems: "center",
     elevation: 3,
   },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   link: {
     marginTop: 20,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 15,
   },
   highlight: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

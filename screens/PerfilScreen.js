@@ -12,11 +12,11 @@ import { useUser } from '../contexts/UserContext';
 import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../Services/supabase';
-import { useTheme } from '../contexts/ThemeContext'; // 👈 Importa o tema
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function PerfilScreen({ navigation }) {
   const { user, logout, setUser } = useUser();
-  const { theme } = useTheme(); // 👈 Acessa o tema atual (claro/escuro)
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!user) {
@@ -128,7 +128,7 @@ export default function PerfilScreen({ navigation }) {
     <ScrollView
       style={[
         styles.container,
-        { backgroundColor: theme.mode === 'dark' ? '#1a1a1a' : '#ffe8e0' }, 
+        { backgroundColor: theme.mode === 'dark' ? '#1a1a1a' : '#ffe8e0' },
       ]}
     >
       <View
@@ -138,7 +138,12 @@ export default function PerfilScreen({ navigation }) {
         ]}
       />
 
-      <View style={styles.profileCard}>
+      <View
+        style={[
+          styles.profileCard,
+          { backgroundColor: theme.mode === 'dark' ? '#2b2b2b' : '#fff' },
+        ]}
+      >
         <View style={styles.imageContainer}>
           {user?.avatar ? (
             <Image source={{ uri: user.avatar }} style={styles.profileImage} resizeMode="cover" />
@@ -146,28 +151,55 @@ export default function PerfilScreen({ navigation }) {
             <MaterialIcons
               name="account-circle"
               size={110}
-              color={theme.mode === 'dark' ? '#FFB74D' : '#FFB300'} // 👈 ligeiro ajuste de cor no dark mode
+              color={theme.mode === 'dark' ? '#FFB74D' : '#FFB300'}
             />
           )}
         </View>
 
         <TouchableOpacity onPress={pickImage}>
-          <Text style={styles.actionText}>Alterar Foto de Perfil</Text>
+          <Text
+            style={[
+              styles.actionText,
+              { color: theme.mode === 'dark' ? '#ffa76b' : '#FF7043' },
+            ]}
+          >
+            Alterar Foto de Perfil
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={takePhoto}>
-          <Text style={styles.actionText}>Tirar Foto</Text>
+          <Text
+            style={[
+              styles.actionText,
+              { color: theme.mode === 'dark' ? '#ffa76b' : '#FF7043' },
+            ]}
+          >
+            Tirar Foto
+          </Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Perfil do Usuário</Text>
+        <Text
+          style={[
+            styles.title,
+            { color: theme.mode === 'dark' ? '#fff' : '#6D4C41' },
+          ]}
+        >
+          Perfil do Usuário
+        </Text>
 
         {user ? (
           <>
-            <Text style={styles.nome}>{user.nome}</Text>
-            <Text style={styles.email}>{user.email}</Text>
+            <Text style={[styles.nome, { color: theme.mode === 'dark' ? '#fff' : '#5D4037' }]}>
+              {user.nome}
+            </Text>
+            <Text style={[styles.email, { color: theme.mode === 'dark' ? '#ddd' : '#8D6E63' }]}>
+              {user.email}
+            </Text>
           </>
         ) : (
-          <Text style={styles.nome}>Carregando...</Text>
+          <Text style={[styles.nome, { color: theme.mode === 'dark' ? '#fff' : '#5D4037' }]}>
+            Carregando...
+          </Text>
         )}
 
         <TouchableOpacity style={styles.historyButton} onPress={goToHistorico}>
@@ -201,7 +233,6 @@ const styles = StyleSheet.create({
     right: 0,
   },
   profileCard: {
-    backgroundColor: '#fff',
     borderRadius: 20,
     padding: 25,
     alignItems: 'center',
@@ -226,24 +257,20 @@ const styles = StyleSheet.create({
     borderRadius: 55,
   },
   actionText: {
-    color: '#FF7043',
     marginBottom: 15,
     fontWeight: 'bold',
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#6D4C41',
     marginBottom: 10,
   },
   nome: {
     fontSize: 18,
-    color: '#5D4037',
     marginBottom: 5,
   },
   email: {
     fontSize: 16,
-    color: '#8D6E63',
     marginBottom: 25,
   },
   historyButton: {
