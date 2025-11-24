@@ -74,9 +74,23 @@ export default function CarteiraScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
-  titulo: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  saldo: { fontSize: 20, marginBottom: 30, textAlign: 'center' },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#fff'
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center'
+  },
+  saldo: {
+    fontSize: 20,
+    marginBottom: 30,
+    textAlign: 'center'
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
