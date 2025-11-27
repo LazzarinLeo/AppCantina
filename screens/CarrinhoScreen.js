@@ -16,18 +16,17 @@ import { criarHistoricoCompra } from '../Services/HistoricoCompras';
 import { adicionarItensCompra } from '../Services/HistoricoItens';
 
 export default function CarrinhoScreen({ navigation }) {
-  // Estados gerais
+
   const [modalVisible, setModalVisible] = React.useState(false);
   const [inputTickets, setInputTickets] = React.useState("");
   const [descontoTicket, setDescontoTicket] = React.useState(0);
   const [ticketsUsados, setTicketsUsados] = React.useState(0);
+
   const [androidResolve, setAndroidResolve] = React.useState(null);
 
-  // Estados do QR
   const [qrVisible, setQrVisible] = React.useState(false);
   const [qrValue, setQrValue] = React.useState("");
 
-  // Contextos
   const { cartItems, removeFromCart, clearCart } = useContext(CartContext);
   const { tickets, descontarTickets, saldo, descontarSaldo } = useContext(WalletContext);
   const { user } = useUser();
@@ -60,6 +59,7 @@ export default function CarrinhoScreen({ navigation }) {
           ],
           "plain-text"
         );
+
       } else {
         setInputTickets("");
         setModalVisible(true);
@@ -70,19 +70,20 @@ export default function CarrinhoScreen({ navigation }) {
 
   const confirmarTicketsAndroid = () => {
     const qtd = Number(inputTickets);
+
     if (isNaN(qtd) || qtd < 0 || qtd > tickets) {
       Alert.alert("Erro", "Quantidade inválida.");
       return;
     }
 
     setModalVisible(false);
-    androidResolve(qtd);
+
+    if (androidResolve) androidResolve(qtd);
+
     setAndroidResolve(null);
   };
 
-  // ---------------------
-  // APLICAR TICKETS
-  // ---------------------
+
   const usarTickets = async () => {
     if (tickets <= 0) {
       Alert.alert("Sem tickets", "Você não possui tickets.");
@@ -90,6 +91,7 @@ export default function CarrinhoScreen({ navigation }) {
     }
 
     const escolha = await pedirTickets();
+
     if (escolha === null) return;
 
     const desconto = (total * (escolha * 5)) / 100;
@@ -98,9 +100,6 @@ export default function CarrinhoScreen({ navigation }) {
     setTicketsUsados(escolha);
   };
 
-  // ---------------------
-  // FINALIZAR COMPRA + GERAR QR
-  // ---------------------
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
       Alert.alert("Carrinho vazio", "Adicione itens antes.");
@@ -108,18 +107,15 @@ export default function CarrinhoScreen({ navigation }) {
     }
 
     const descontoAplicado = (total * (ticketsUsados * 5)) / 100;
-
     const totalFinalCheckout = Math.max(total - descontoAplicado, 0);
 
     if (saldo < totalFinalCheckout) {
-      Alert.alert("Saldo insuficiente", "Deposite mais na carteira.");
+      Alert.alert("Saldo insuficiente", "Deposite mais dinheiro.");
       return;
     }
 
     try {
-      if (ticketsUsados > 0) {
-        await descontarTickets(ticketsUsados);
-      }
+      if (ticketsUsados > 0) await descontarTickets(ticketsUsados);
 
       await descontarSaldo(totalFinalCheckout);
 
@@ -140,7 +136,6 @@ export default function CarrinhoScreen({ navigation }) {
 
       clearCart();
 
-      // DADOS DO QR
       const dadosQR = {
         compraId: compra.id,
         usuarioId: user_id,
@@ -151,15 +146,12 @@ export default function CarrinhoScreen({ navigation }) {
       setQrValue(JSON.stringify(dadosQR));
       setQrVisible(true);
 
-    } catch (e) {
-      console.log(e);
-      Alert.alert("Erro", "Não foi possível finalizar.");
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Erro", "Falha ao finalizar compra.");
     }
   };
 
-  // ---------------------
-  // RENDER
-  // ---------------------
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
 
@@ -167,7 +159,6 @@ export default function CarrinhoScreen({ navigation }) {
         <Text style={styles.headerText}>🛒 Seu Carrinho</Text>
       </View>
 
-      {/* LISTAGEM */}
       {cartItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="cart-outline" size={60} color="#BDBDBD" />
@@ -197,9 +188,7 @@ export default function CarrinhoScreen({ navigation }) {
         />
       )}
 
-      {/* RODAPÉ */}
       <View style={styles.footer}>
-
         <View style={styles.priceRow}>
           <Text style={styles.totalLabel}>Total:</Text>
           <Text style={styles.totalValor}>R$ {totalFinal.toFixed(2)}</Text>
@@ -211,22 +200,49 @@ export default function CarrinhoScreen({ navigation }) {
           </Text>
         )}
 
-        <TouchableOpacity
-          onPress={usarTickets}
-          style={styles.useTicketButton}
-        >
+        <TouchableOpacity onPress={usarTickets} style={styles.useTicketButton}>
           <Text style={styles.checkoutText}>Usar Tickets</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={handleCheckout}
-          style={styles.checkoutButton}
-        >
+        <TouchableOpacity onPress={handleCheckout} style={styles.checkoutButton}>
           <Text style={styles.checkoutText}>Finalizar Compra</Text>
         </TouchableOpacity>
       </View>
 
-      {/* ------------------ MODAL DO QR ------------------ */}
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View style={styles.qrOverlay}>
+          <View style={[styles.qrBox, { backgroundColor: "#fff" }]}>
+
+            <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 15 }}>
+              Usar Tickets
+            </Text>
+
+            <TextInput
+              placeholder="Quantidade"
+              keyboardType="numeric"
+              value={inputTickets}
+              onChangeText={setInputTickets}
+              style={{
+                borderWidth: 1,
+                borderColor: "#ccc",
+                width: "80%",
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 15
+              }}
+            />
+
+            <TouchableOpacity
+              onPress={confirmarTicketsAndroid}
+              style={styles.closeButton}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700" }}>Confirmar</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={qrVisible} transparent animationType="fade">
         <View style={styles.qrOverlay}>
           <View style={[styles.qrBox, { backgroundColor: theme.mode === "dark" ? "#000" : "#fff" }]}>
@@ -256,11 +272,10 @@ export default function CarrinhoScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
     </View>
   );
 }
-
-// ------------------ ESTILOS ------------------
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 16 },
@@ -333,7 +348,6 @@ const styles = StyleSheet.create({
 
   checkoutText: { color: "#fff", fontSize: 17, fontWeight: "700" },
 
-  // modal QR
   qrOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
