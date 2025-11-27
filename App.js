@@ -22,40 +22,42 @@ import HistoricoScreen from './screens/HistoricoScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import CarteiraScreen from './screens/CarteiraScreen';
 
+// Novas telas
+import CarrinhoScreen from './screens/CarrinhoScreen';
+import ScannerScreen from './screens/ScannerScreen';
+
 const Stack = createNativeStackNavigator();
 
-// 🔧 Rotas internas com suporte a tema e contexto do usuário
 function AppRoutes() {
   const { user } = useContext(UserContext);
   const { theme } = useTheme();
 
-  // Extensão do tema do React Navigation, sincronizado com o ThemeContext
   const navigationTheme =
     theme.mode === 'dark'
       ? {
-        ...DarkTheme,
-        colors: {
-          ...DarkTheme.colors,
-          background: theme.colors.background,
-          card: theme.colors.card,
-          text: theme.colors.text,
-          primary: theme.colors.button,
-          border: theme.colors.border,
-          notification: theme.colors.highlight,
-        },
-      }
+          ...DarkTheme,
+          colors: {
+            ...DarkTheme.colors,
+            background: theme.colors.background,
+            card: theme.colors.card,
+            text: theme.colors.text,
+            primary: theme.colors.button,
+            border: theme.colors.border,
+            notification: theme.colors.highlight,
+          },
+        }
       : {
-        ...DefaultTheme,
-        colors: {
-          ...DefaultTheme.colors,
-          background: theme.colors.background,
-          card: theme.colors.card,
-          text: theme.colors.text,
-          primary: theme.colors.button,
-          border: theme.colors.border,
-          notification: theme.colors.highlight,
-        },
-      };
+          ...DefaultTheme,
+          colors: {
+            ...DefaultTheme.colors,
+            background: theme.colors.background,
+            card: theme.colors.card,
+            text: theme.colors.text,
+            primary: theme.colors.button,
+            border: theme.colors.border,
+            notification: theme.colors.highlight,
+          },
+        };
 
   return (
     <WalletProvider usuarioId={user?.id}>
@@ -96,11 +98,22 @@ function AppRoutes() {
               name="Settings"
               component={SettingsScreen}
               options={{ title: 'Configurações' }}
-              />
+            />
             <Stack.Screen
               name="Carteira"
               component={CarteiraScreen}
               options={{ title: 'Minha Carteira' }}
+            />
+            {/* Carrinho e Scanner */}
+            <Stack.Screen
+              name="Carrinho"
+              component={CarrinhoScreen}
+              options={{ title: 'Carrinho' }}
+            />
+            <Stack.Screen
+              name="Scanner"
+              component={ScannerScreen}
+              options={{ title: 'Scanner QR' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
@@ -109,7 +122,6 @@ function AppRoutes() {
   );
 }
 
-// 🧠 App principal com todos os providers globais
 export default function App() {
   return (
     <UserProvider>

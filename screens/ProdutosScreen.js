@@ -145,7 +145,7 @@ export default function ProdutosScreen() {
           const buttonScale = getButtonScale(item.id);
 
           return (
-            <View style={[styles.card, { width: CARD_WIDTH, backgroundColor: theme.mode === 'dark' ? '#1E1E1E' : '#fff' }]}>
+            <View style={[styles.card, { width: CARD_WIDTH, backgroundColor: theme.mode === 'dark' ? '#121212' : '#fff' }]}>
               <View style={styles.imageWrap}>
                 <Image source={{ uri: item.imagem }} style={styles.imagem} resizeMode="cover" />
                 <View style={styles.priceTag}>
