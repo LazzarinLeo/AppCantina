@@ -79,9 +79,9 @@ export default function ProdutosScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.mode === 'dark' ? '#000' : '#f8f8f8' }]}>
+    <View style={[styles.container, { backgroundColor: theme.mode === 'dark' ? '#121212' : '#f8f8f8' }]}>
       {/* Cabeçalho */}
-      <View style={[styles.header, { backgroundColor: '#FF7A50' }]}>
+      <View style={[theme.mode === 'dark' ? { backgroundColor: '#703dff' } : { backgroundColor: '#FF7043' }, styles.header]}>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Minha Loja</Text>
           <Text style={styles.headerSubtitle}>Produtos selecionados para você</Text>
@@ -145,7 +145,7 @@ export default function ProdutosScreen() {
           const buttonScale = getButtonScale(item.id);
 
           return (
-            <View style={[styles.card, { width: CARD_WIDTH, backgroundColor: theme.mode === 'dark' ? '#121212' : '#fff' }]}>
+            <View style={[styles.card, { width: CARD_WIDTH, backgroundColor: theme.mode === 'dark' ? '#1E1E1E' : '#fff' }]}>
               <View style={styles.imageWrap}>
                 <Image source={{ uri: item.imagem }} style={styles.imagem} resizeMode="cover" />
                 <View style={styles.priceTag}>
@@ -177,7 +177,7 @@ export default function ProdutosScreen() {
                     android_ripple={{ color: '#00000010', borderless: false }}
                     style={{ marginLeft: 8 }}
                   >
-                    <Animated.View style={[styles.addButton, { transform: [{ scale: buttonScale }] }]}>
+                    <Animated.View style={[styles.addButton, theme.mode === 'dark' ? { backgroundColor: '#703dff' } : { backgroundColor: '#FF7043' } , { transform: [{ scale: buttonScale }] }]}>
                       <Ionicons name="cart" size={16} color="#fff" />
                       <Text style={styles.addButtonText}>Adicionar</Text>
                     </Animated.View>
