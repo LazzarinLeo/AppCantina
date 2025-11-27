@@ -39,10 +39,6 @@ export default function CarrinhoScreen({ navigation }) {
   );
 
   const totalFinal = Math.max(total - descontoTicket, 0);
-
-  // ---------------------
-  // PEDIR TICKETS
-  // ---------------------
   const pedirTickets = () => {
     return new Promise((resolve) => {
       if (Platform.OS === "ios") {
