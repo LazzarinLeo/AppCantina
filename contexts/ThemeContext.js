@@ -30,7 +30,7 @@ const darkTheme = {
     border: '#333',
     inputBackground: '#2C2C2C',
     placeholder: '#BCAAA4',
-    button: '#FF7043',
+    button: '#703dff',
     buttonText: '#FFFFFF',
     link: '#D7CCC8',
     highlight: '#FFAB91',

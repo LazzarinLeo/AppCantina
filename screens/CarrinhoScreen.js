@@ -190,8 +190,8 @@ export default function CarrinhoScreen({ navigation }) {
 
       <View style={styles.footer}>
         <View style={styles.priceRow}>
-          <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalValor}>R$ {totalFinal.toFixed(2)}</Text>
+          <Text style={[styles.totalLabel, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}>Total:</Text>
+          <Text style={[styles.totalValor, theme.mode === 'dark' ? {color:'#703dff'} : {color:'#FF7043'}]}>R$ {totalFinal.toFixed(2)}</Text>
         </View>
 
         {descontoTicket > 0 && (
@@ -204,7 +204,7 @@ export default function CarrinhoScreen({ navigation }) {
           <Text style={styles.checkoutText}>Usar Tickets</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleCheckout} style={styles.checkoutButton}>
+        <TouchableOpacity onPress={handleCheckout} style={[styles.checkoutButton, theme.mode === 'dark' ? { backgroundColor: '#703dff' } : { backgroundColor: '#FF7043' }]}>
           <Text style={styles.checkoutText}>Finalizar Compra</Text>
         </TouchableOpacity>
       </View>

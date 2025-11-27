@@ -141,17 +141,17 @@ export default function PerfilScreen({ navigation }) {
       <View
         style={[
           styles.profileCard,
-          { backgroundColor: theme.mode === 'dark' ? '#2b2b2b' : '#fff' },
+          { backgroundColor: theme.mode === 'dark' ? '#2b2b2b' : '#fff' }, // #703dff
         ]}
       >
-        <View style={styles.imageContainer}>
+        <View style={[styles.imageContainer, theme.mode === 'dark' ? {borderColor:'#3220d0'} : {borderColor:'#FF7043'}]}>
           {user?.avatar ? (
-            <Image source={{ uri: user.avatar }} style={styles.profileImage} resizeMode="cover" />
+            <Image source={{ uri: user.avatar }} style={[styles.profileImage]} resizeMode="cover" />
           ) : (
             <MaterialIcons
               name="account-circle"
               size={110}
-              color={theme.mode === 'dark' ? '#FFB74D' : '#FFB300'}
+              color={theme.mode === 'dark' ? '#703dff' : '#FFB300'}
             />
           )}
         </View>
@@ -160,7 +160,7 @@ export default function PerfilScreen({ navigation }) {
           <Text
             style={[
               styles.actionText,
-              { color: theme.mode === 'dark' ? '#ffa76b' : '#FF7043' },
+              { color: theme.mode === 'dark' ? '#8a61ff' : '#FF7043' },
             ]}
           >
             Alterar Foto de Perfil
@@ -171,7 +171,7 @@ export default function PerfilScreen({ navigation }) {
           <Text
             style={[
               styles.actionText,
-              { color: theme.mode === 'dark' ? '#ffa76b' : '#FF7043' },
+              { color: theme.mode === 'dark' ? '#8a61ff' : '#FF7043' },
             ]}
           >
             Tirar Foto
@@ -202,26 +202,26 @@ export default function PerfilScreen({ navigation }) {
           </Text>
         )}
         <TouchableOpacity
-          style={styles.walletButton}
+          style={[styles.walletButton, theme.mode === 'dark' ? {backgroundColor:'#2a7cee'} : {backgroundColor:'#FFD8A6'}]}
           onPress={() => navigation.navigate('Carteira')}
         >
-          <Ionicons name="wallet" size={20} color="#4E342E" />
-          <Text style={styles.walletText}> Adicionar Saldo</Text>
+          <Ionicons name="wallet" size={20} color={theme.mode === 'dark' ? '#daead7': '#4E342E'} />
+          <Text style={[styles.walletText, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}> Adicionar Saldo</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.historyButton} onPress={goToHistorico}>
-          <FontAwesome5 name="receipt" size={18} color="#4E342E" />
-          <Text style={styles.historyText}> Ver Histórico de Compras</Text>
+        <TouchableOpacity style={[styles.historyButton, theme.mode === 'dark' ? {backgroundColor:'#5459ce'} : {backgroundColor:'#fa9778'}]} onPress={goToHistorico}>
+          <FontAwesome5 name="receipt" size={18} color={theme.mode === 'dark' ? '#daead7': '#4E342E'} />
+          <Text style={[styles.historyText, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}> Ver Histórico de Compras</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.settingsButton} onPress={goToSettings}>
-          <Ionicons name="settings" size={20} color="#4E342E" />
-          <Text style={styles.settingsText}> Configurações</Text>
+        <TouchableOpacity style={[styles.settingsButton, theme.mode === 'dark' ? {backgroundColor:'#2a7cee'} : {backgroundColor:'#FFD8A6'}]} onPress={goToSettings}>
+          <Ionicons name="settings" size={20} color={theme.mode === 'dark' ? '#daead7': '#4E342E'} />
+          <Text style={[styles.settingsText, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}> Configurações</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={20} color="#FFF" />
-          <Text style={styles.logoutText}> Sair da Conta</Text>
+          <Text style={[styles.logoutText]}> Sair da Conta</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
