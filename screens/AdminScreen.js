@@ -73,7 +73,7 @@ export default function AdminScreen() {
           nome: novoNome,
           email: novoEmail,
           ativo: ativo,
-          turma: novaTurma
+          turma: novaTurma.toUpperCase()
         })
         .eq('id', usuarioAtual.id);
 
@@ -121,7 +121,7 @@ export default function AdminScreen() {
               <View key={item.id} style={[styles.userCard, { backgroundColor: theme.colors.card }]}>
                 <Text style={[styles.userText, { color: theme.colors.text }]}>
                   {item.nome} ({item.email}) {item.admin ? ' - Admin' : ''}
-                  {item.ativo ? ' - Desativo' : ' - Ativo '}
+                  {item.ativo ? ' - Desativado' : ' - Ativo '}
                 </Text>
                 <View style={styles.buttonsContainer}>
                   <TouchableOpacity

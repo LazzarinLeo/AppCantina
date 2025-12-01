@@ -83,9 +83,31 @@ export default function PerfilScreen({ navigation }) {
     try {
       const ext = uri.split('.').pop().toLowerCase();
       const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
-      const fileName = `${user.id}.${ext}`;
-      const filePath = `avatars/${fileName}`;
 
+      // Deleta avatar antigo, se houver
+      if (user?.avatar) {
+        const oldFileName = user.avatar.split('/').pop();
+        if (oldFileName) {
+          await supabase.storage.from('avatars').remove([oldFileName]);
+        }
+      }
+
+      // Gera novo nome incremental
+      let fileNumber = 1;
+      let filePath = `avatars/${user.id}.${fileNumber}.${ext}`;
+
+      // Checa se já existe (precaução)
+      while (true) {
+        const { data: existingFile } = await supabase.storage
+          .from('avatars')
+          .list('', { search: `${user.id}.${fileNumber}.${ext}` });
+
+        if (existingFile.length === 0) break;
+        fileNumber++;
+        filePath = `avatars/${user.id}.${fileNumber}.${ext}`;
+      }
+
+      // Upload
       const response = await fetch(uri);
       const arrayBuffer = await response.arrayBuffer();
 
@@ -93,7 +115,7 @@ export default function PerfilScreen({ navigation }) {
         .from('avatars')
         .upload(filePath, arrayBuffer, {
           contentType: mime,
-          upsert: true,
+          upsert: false,
         });
 
       if (uploadError) throw uploadError;
@@ -103,6 +125,7 @@ export default function PerfilScreen({ navigation }) {
         .getPublicUrl(filePath);
 
       const avatarUrl = publicUrlData.publicUrl;
+
       await updateUserAvatar(avatarUrl);
     } catch (error) {
       console.error('Erro no upload:', error.message);
@@ -141,7 +164,7 @@ export default function PerfilScreen({ navigation }) {
       <View
         style={[
           styles.profileCard,
-          { backgroundColor: theme.mode === 'dark' ? '#2b2b2b' : '#fff' }, // #703dff
+          { backgroundColor: theme.mode === 'dark' ? '#2b2b2b' : '#fff' },
         ]}
       >
         <View style={[styles.imageContainer, theme.mode === 'dark' ? {borderColor:'#3220d0'} : {borderColor:'#FF7043'}]}>
@@ -280,8 +303,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 25,
   },
-
-  /* 🔥 BOTÃO DA CARTEIRA */
   walletButton: {
     flexDirection: 'row',
     backgroundColor: '#FFD8A6',
@@ -298,7 +319,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-
   historyButton: {
     flexDirection: 'row',
     backgroundColor: '#fa9778',
@@ -315,7 +335,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-
   settingsButton: {
     flexDirection: 'row',
     backgroundColor: '#FFCC80',
@@ -332,7 +351,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-
   logoutButton: {
     flexDirection: 'row',
     backgroundColor: '#E53935',
