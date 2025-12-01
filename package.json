@@ -16,6 +16,7 @@
     "@react-navigation/native-stack": "^7.3.28",
     "@react-navigation/stack": "^7.4.8",
     "@supabase/supabase-js": "^2.75.0",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "expo": "~54.0.7",
     "expo-image-picker": "^17.0.8",
