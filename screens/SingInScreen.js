@@ -3,6 +3,13 @@ import { View, TextInput, TouchableOpacity, Text, Alert, StyleSheet } from "reac
 import { supabase } from "../Services/supabase";
 import { useUser } from "../contexts/UserContext";
 import { useTheme } from "../contexts/ThemeContext";
+import bcrypt from "bcryptjs";
+
+bcrypt.setRandomFallback((len) => {
+  const rand = new Uint8Array(len);
+  for (let i = 0; i < len; i++) rand[i] = Math.floor(Math.random() * 256);
+  return rand;
+});
 
 export default function SigninScreen({ navigation }) {
   const [nome, setNome] = useState("");
@@ -12,7 +19,10 @@ export default function SigninScreen({ navigation }) {
   const { theme } = useTheme();
 
   const emailValido = (email) => {
-    return email.endsWith("@edu.sc.senai.br") || email.endsWith("@estudante.sesisenai.org.br");
+    return (
+      email.endsWith("@edu.sc.senai.br") ||
+      email.endsWith("@estudante.sesisenai.org.br")
+    );
   };
 
   async function cadastrarUsuario() {
@@ -22,7 +32,7 @@ export default function SigninScreen({ navigation }) {
     }
 
     if (!emailValido(email)) {
-      Alert.alert("Digite um email válido!");
+      Alert.alert("Digite um email institucional válido!");
       return;
     }
 
@@ -37,12 +47,15 @@ export default function SigninScreen({ navigation }) {
         return;
       }
 
-      // Define admin pelo domínio no momento do cadastro
       const isAdmin = email.endsWith("@edu.sc.senai.br");
+
+
+      const salt = bcrypt.genSaltSync(10);
+      const senhaHash = bcrypt.hashSync(senha, salt);
 
       const { data, error } = await supabase
         .from("usuarios")
-        .insert([{ nome, email, senha, admin: isAdmin }])
+        .insert([{ nome, email, senha: senhaHash, admin: isAdmin }])
         .select()
         .single();
 
@@ -63,13 +76,20 @@ export default function SigninScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>Cadastro de Usuário</Text>
+      <Text style={[styles.title, { color: theme.colors.text }]}>Cadastro</Text>
 
       <TextInput
         placeholder="Nome"
         value={nome}
         onChangeText={setNome}
-        style={[styles.input, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border }]}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.text,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholderTextColor={theme.colors.placeholder}
       />
 
@@ -77,28 +97,50 @@ export default function SigninScreen({ navigation }) {
         placeholder="Email institucional"
         value={email}
         onChangeText={setEmail}
-        autoCapitalize="none"
         keyboardType="email-address"
-        style={[styles.input, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border }]}
+        autoCapitalize="none"
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.text,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholderTextColor={theme.colors.placeholder}
       />
 
       <TextInput
         placeholder="Senha"
+        secureTextEntry
         value={senha}
         onChangeText={setSenha}
-        secureTextEntry
-        style={[styles.input, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border }]}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.text,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholderTextColor={theme.colors.placeholder}
       />
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.colors.button }]} onPress={cadastrarUsuario}>
-        <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>Cadastrar</Text>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: theme.colors.button }]}
+        onPress={cadastrarUsuario}
+      >
+        <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>
+          Cadastrar
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={[styles.link, { color: theme.colors.link }]}>
-          Já tem conta? <Text style={[styles.highlight, { color: theme.colors.highlight }]}>Faça login</Text>
+          Já tem conta?{" "}
+          <Text style={[styles.highlight, { color: theme.colors.highlight }]}>
+            Faça login
+          </Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -106,18 +148,8 @@ export default function SigninScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 30,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 30,
-    textAlign: "center",
-  },
+  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 30 },
+  title: { fontSize: 26, fontWeight: "bold", marginBottom: 30 },
   input: {
     width: "100%",
     borderRadius: 8,
@@ -134,17 +166,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 3,
   },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  link: {
-    marginTop: 20,
-    textAlign: "center",
-    fontSize: 15,
-  },
-  highlight: {
-    fontWeight: "bold",
-  },
+  buttonText: { fontSize: 18, fontWeight: "bold" },
+  link: { marginTop: 20, textAlign: "center", fontSize: 15 },
+  highlight: { fontWeight: "bold" },
 });
-
