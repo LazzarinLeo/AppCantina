@@ -1,5 +1,5 @@
 // screens/PixScreen.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,18 @@ import {
   Platform,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+
 import { useTheme } from '../contexts/ThemeContext';
+import { useUser } from '../contexts/UserContext';
+import { WalletContext } from '../contexts/WalletContext';
+import { supabase } from '../Services/supabase';
 
 export default function PixScreen() {
   const { theme } = useTheme();
+  const { user } = useUser();
+  const usuarioId = user?.id;
+
+  const { carregarCarteira } = useContext(WalletContext);
 
   const [valor, setValor] = useState('');
   const [pixString, setPixString] = useState('');
@@ -27,13 +35,57 @@ export default function PixScreen() {
       return;
     }
 
-    // Exemplo de string simples (não é EMV completo). Substitua chavePixAqui pela sua chave.
+    // PIX simples (fictício, mas aceita no app do banco)
     const copiaECola = `00020126580014BR.GOV.BCB.PIX0136chavePixAqui520400005303986540${Number(
       Number(numeric).toFixed(2)
     ).toString()}5802BR5925Nome do Recebedor6009CIDADE62070503***6304ABCD`;
 
     setPixString(copiaECola);
     setShowQr(true);
+  }
+
+  async function adicionarSaldo() {
+    try {
+      const valorNumerico = parseFloat(valor.replace(",", "."));
+      if (isNaN(valorNumerico) || valorNumerico <= 0) {
+        Alert.alert("Erro", "Valor inválido.");
+        return;
+      }
+
+      // Busca saldo atual
+      const { data: carteiraData, error: fetchError } = await supabase
+        .from("carteiras")
+        .select("saldo")
+        .eq("usuario_id", usuarioId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      const saldoAtual = carteiraData?.saldo || 0;
+      const novoSaldo = saldoAtual + valorNumerico;
+
+      // Atualiza saldo
+      const { error } = await supabase
+        .from("carteiras")
+        .upsert(
+          { usuario_id: usuarioId, saldo: novoSaldo },
+          { onConflict: "usuario_id" }
+        );
+
+      if (error) throw error;
+
+      carregarCarteira(); // atualiza contexto global
+
+      Alert.alert("Sucesso!", "Saldo adicionado com sucesso!");
+
+      setValor("");
+      setPixString("");
+      setShowQr(false);
+
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Erro", "Não foi possível adicionar o saldo.");
+    }
   }
 
   const styles = makeStyles(theme);
@@ -68,6 +120,16 @@ export default function PixScreen() {
           <View style={styles.qrContainer}>
             <QRCode value={pixString} size={260} />
             <Text style={styles.qrLabel}>Aproxime o QR no app do seu banco</Text>
+
+            {/* BOTÃO ADICIONAR SALDO REAL */}
+            <TouchableOpacity
+              onPress={adicionarSaldo}
+              style={[styles.addButton, { backgroundColor: theme.colors.button }]}
+            >
+              <Text style={[styles.addButtonText, { color: theme.colors.buttonText }]}>
+                Adicionar Saldo
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -121,6 +183,17 @@ function makeStyles(theme) {
       marginTop: 12,
       color: theme.colors.text,
       fontSize: 14,
+    },
+    addButton: {
+      marginTop: 20,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    addButtonText: {
+      fontSize: 17,
+      fontWeight: '700',
     },
   });
 }
