@@ -1,5 +1,5 @@
-
-import React, { useContext, useState } from 'react';
+// screens/CarteiraScreen.js
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
+  FlatList,
 } from 'react-native';
 import { WalletContext } from '../contexts/WalletContext';
 import { supabase } from '../Services/supabase';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { listarCartoes, removerCartao } from '../Services/cartaoService';
 
-export default function CarteiraScreen() {
+export default function CarteiraScreen({ navigation }) {
   const { user } = useUser();
   const usuarioId = user?.id;
 
@@ -22,12 +24,30 @@ export default function CarteiraScreen() {
 
   const [valor, setValor] = useState('');
   const [formaSelecionada, setFormaSelecionada] = useState(null);
+  const [cartoes, setCartoes] = useState([]);
+
+  // 🔥 CORREÇÃO — evita chamadas duplicadas e recarrega quando a tela volta
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      carregarCartoes();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  async function carregarCartoes() {
+    if (!usuarioId) return;
+    const { data, error } = await listarCartoes(usuarioId);
+    if (error) {
+      console.error('Erro ao listar cartões:', error);
+      return;
+    }
+    setCartoes(data || []);
+  }
 
   async function adicionarSaldo() {
-    const valorNumerico = parseFloat(valor);
-
+    const valorNumerico = parseFloat(valor.replace(',', '.'));
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
-      Alert.alert("Erro", "Digite um valor válido.");
+      Alert.alert('Erro', 'Digite um valor válido.');
       return;
     }
 
@@ -36,81 +56,134 @@ export default function CarteiraScreen() {
         .from('carteiras')
         .select('saldo')
         .eq('usuario_id', usuarioId)
-        .single();
+        .maybeSingle();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
+      if (fetchError) throw fetchError;
 
       const saldoAtual = carteiraData?.saldo || 0;
       const novoSaldo = saldoAtual + valorNumerico;
 
       const { error } = await supabase
         .from('carteiras')
-        .upsert({ usuario_id: usuarioId, saldo: novoSaldo }, { onConflict: 'usuario_id' });
+        .upsert(
+          { usuario_id: usuarioId, saldo: novoSaldo },
+          { onConflict: 'usuario_id' }
+        );
 
       if (error) throw error;
 
-      Alert.alert("Sucesso", `Adicionado R$${valorNumerico.toFixed(2)} à sua carteira.`);
-      setValor("");
+      Alert.alert('Sucesso', `Adicionado R$${valorNumerico.toFixed(2)} à sua carteira.`);
+      setValor('');
       carregarCarteira();
     } catch (err) {
-      console.error("Erro ao adicionar saldo:", err);
-      Alert.alert("Erro", "Não foi possível atualizar o saldo.");
+      console.error('Erro ao adicionar saldo:', err);
+      Alert.alert('Erro', 'Não foi possível atualizar o saldo.');
     }
   }
 
+  async function handleRemoverCartao(id) {
+    Alert.alert('Remover', 'Deseja remover este cartão?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Remover',
+        style: 'destructive',
+        onPress: async () => {
+          const { error } = await removerCartao(id);
+          if (error) {
+            Alert.alert('Erro', 'Não foi possível remover o cartão.');
+            return;
+          }
+          carregarCartoes();
+        },
+      },
+    ]);
+  }
+
+  const styles = makeStyles(theme);
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>
-        💳 Forma de Pagamento
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>💳 Forma de Pagamento</Text>
+
       {formaSelecionada === null && (
         <>
           <TouchableOpacity
-            style={[styles.option, { backgroundColor: theme.colors.inputBackground, borderColor: theme.colors.border }]}
-            onPress={() => Alert.alert("Pix", "Pagamento via Pix em desenvolvimento.")}
+            style={styles.option}
+            onPress={() => navigation.navigate('Pix')}
           >
-            <Text style={[styles.optionText, { color: theme.colors.text }]}>⚡ PIX</Text>
+            <Text style={styles.optionText}>⚡ PIX</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.option, { backgroundColor: theme.colors.inputBackground, borderColor: theme.colors.border }]}
+            style={styles.option}
             onPress={() => setFormaSelecionada('cartao')}
           >
-            <Text style={[styles.optionText, { color: theme.colors.text }]}>💳 Cartão</Text>
+            <Text style={styles.optionText}>💳 Cartão</Text>
           </TouchableOpacity>
         </>
       )}
+
       {formaSelecionada === 'cartao' && (
         <>
           <TouchableOpacity onPress={() => setFormaSelecionada(null)}>
-            <Text style={[styles.voltar, { color: theme.colors.text }]}>⬅ Voltar</Text>
+            <Text style={styles.voltar}>⬅ Voltar</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.option, { backgroundColor: theme.colors.inputBackground, borderColor: theme.colors.border }]}
-            onPress={() => Alert.alert("Cartão", "Adicionar cartão em desenvolvimento.")}
+            style={styles.option}
+            onPress={() => navigation.navigate('AdicionarCartao')}
           >
-            <Text style={[styles.optionText, { color: theme.colors.text }]}>➕ Adicionar Cartão</Text>
+            <Text style={styles.optionText}>➕ Adicionar Cartão</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.option, { backgroundColor: theme.colors.inputBackground, borderColor: theme.colors.border }]}
-            onPress={() => setFormaSelecionada('carteira')}
-          >
-            <Text style={[styles.optionText, { color: theme.colors.text }]}>💳 Cartão do Bruno</Text>
-          </TouchableOpacity>
+          <Text style={[styles.subtitle, { color: theme.colors.text }]}>Seus cartões</Text>
+
+          <FlatList
+            data={cartoes}
+            keyExtractor={(item) => item.id}
+            style={{ width: '100%', marginTop: 10 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => setFormaSelecionada('carteira')}
+                style={[
+                  styles.cardItem,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.inputBackground,
+                  },
+                ]}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                  }}
+                >
+                  <Text style={[styles.cardText, { color: theme.colors.text }]}>
+                    {item.nome_cartao} •••• {String(item.numero_cartao).slice(-4)}
+                  </Text>
+                  <TouchableOpacity onPress={() => handleRemoverCartao(item.id)}>
+                    <Text style={{ color: '#FF4D4F', fontWeight: '700' }}>Remover</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
         </>
       )}
+
       {formaSelecionada === 'carteira' && (
         <>
           <TouchableOpacity onPress={() => setFormaSelecionada(null)}>
-            <Text style={[styles.voltar, { color: theme.colors.text }]}>⬅ Voltar</Text>
+            <Text style={styles.voltar}>⬅ Voltar</Text>
           </TouchableOpacity>
 
           <Text style={[styles.saldo, { color: theme.colors.text }]}>
-            Saldo atual: <Text style={{ fontWeight: "bold" }}>R$ {saldo.toFixed(2)}</Text>
+            Saldo atual:{' '}
+            <Text style={{ fontWeight: '700' }}>
+              R$ {Number(saldo || 0).toFixed(2)}
+            </Text>
           </Text>
 
           <TextInput
@@ -143,63 +216,81 @@ export default function CarteiraScreen() {
   );
 }
 
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 30,
-  },
-  option: {
-    paddingVertical: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginBottom: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 2, 
-  },
-  optionText: {
-    fontSize: 18,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  voltar: {
-    fontSize: 18,
-    marginBottom: 20,
-    fontWeight: "bold",
-    textAlign: "left",
-  },
-  saldo: {
-    fontSize: 20,
-    textAlign: "center",
-    marginBottom: 30,
-  },
-  input: {
-    width: "100%",
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 20,
-    fontSize: 16,
-  },
-  button: {
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 10,
-    alignItems: "center",
-    elevation: 3,
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    letterSpacing: 0.5,
-  },
-});
-
+function makeStyles(theme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      justifyContent: 'flex-start',
+      backgroundColor: theme.colors.background,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: 20,
+      color: theme.colors.text,
+    },
+    option: {
+      paddingVertical: 16,
+      borderRadius: 10,
+      borderWidth: 1,
+      marginBottom: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 2,
+      backgroundColor: theme.colors.inputBackground,
+      borderColor: theme.colors.border,
+    },
+    optionText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+    voltar: {
+      fontSize: 16,
+      marginBottom: 12,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+    },
+    saldo: {
+      fontSize: 20,
+      textAlign: 'center',
+      marginBottom: 14,
+    },
+    input: {
+      width: '100%',
+      borderRadius: 10,
+      borderWidth: 1,
+      padding: 12,
+      marginBottom: 16,
+      fontSize: 16,
+    },
+    button: {
+      width: '100%',
+      paddingVertical: 14,
+      borderRadius: 10,
+      alignItems: 'center',
+      elevation: 3,
+    },
+    buttonText: {
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    subtitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      marginTop: 12,
+    },
+    cardItem: {
+      padding: 12,
+      borderRadius: 10,
+      borderWidth: 1,
+      marginBottom: 10,
+    },
+    cardText: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  });
+}

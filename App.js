@@ -1,3 +1,4 @@
+// App.js
 import React, { useCallback, useContext } from 'react';
 import { BackHandler } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +35,8 @@ import CarrinhoScreen from './screens/CarrinhoScreen';
 import ScannerScreen from './screens/ScannerScreen';
 import HomePerfilScreen from './screens/PerfilScreen';
 import AdminScreen from './screens/AdminScreen';
+import AdicionarCartaoScreen from './screens/AdicionarCartaoScreen';
+import PixScreen from './screens/PixScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -57,7 +60,6 @@ function ProdutosStack() {
 
 function HomeScreen() {
   const { theme } = useTheme();
-
 
   useFocusEffect(
     useCallback(() => {
@@ -180,6 +182,16 @@ function AppRoutes() {
                 name="Scanner"
                 component={ScannerScreen}
                 options={{ title: 'Scanner QR' }}
+              />
+              <Stack.Screen
+                name="AdicionarCartao"
+                component={AdicionarCartaoScreen}
+                options={{ title: 'Adicionar Cartão' }}
+              />
+              <Stack.Screen
+                name="Pix"
+                component={PixScreen}
+                options={{ title: 'PIX' }}
               />
             </Stack.Navigator>
           </NavigationContainer>
