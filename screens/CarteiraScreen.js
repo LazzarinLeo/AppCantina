@@ -1,4 +1,7 @@
-// screens/CarteiraScreen.js
+// CarteiraScreen.js
+// Tela onde o usuário gerencia formas de pagamento,
+// vê o saldo da carteira, adiciona saldo e gerencia seus cartões.
+
 import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
@@ -9,24 +12,37 @@ import {
   StyleSheet,
   FlatList,
 } from 'react-native';
+
+// Contextos
 import { WalletContext } from '../contexts/WalletContext';
 import { supabase } from '../Services/supabase';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
+
+// Serviços
 import { listarCartoes, removerCartao } from '../Services/cartaoService';
 
 export default function CarteiraScreen({ navigation }) {
+
+  // Pegando usuário atual
   const { user } = useUser();
   const usuarioId = user?.id;
 
+  // Dados da carteira
   const { saldo, carregarCarteira } = useContext(WalletContext);
+
+  // Tema atual
   const { theme } = useTheme();
 
+  // Estados locais da tela
   const [valor, setValor] = useState('');
   const [formaSelecionada, setFormaSelecionada] = useState(null);
   const [cartoes, setCartoes] = useState([]);
 
-  // 🔥 CORREÇÃO — evita chamadas duplicadas e recarrega quando a tela volta
+  // =================================================
+  // Executado toda vez que a tela volta ao foco
+  // Assim, garante que lista cartões atualizados
+  // =================================================
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       carregarCartoes();
@@ -34,24 +50,35 @@ export default function CarteiraScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
+  // Função que busca cartões do usuário
   async function carregarCartoes() {
     if (!usuarioId) return;
+
     const { data, error } = await listarCartoes(usuarioId);
+
     if (error) {
       console.error('Erro ao listar cartões:', error);
       return;
     }
+
     setCartoes(data || []);
   }
 
+  // =================================================
+  // Adicionar saldo à carteira via Supabase
+  // =================================================
   async function adicionarSaldo() {
+
+    // Converte String → Número
     const valorNumerico = parseFloat(valor.replace(',', '.'));
+
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
       Alert.alert('Erro', 'Digite um valor válido.');
       return;
     }
 
     try {
+      // Pega saldo atual do usuário
       const { data: carteiraData, error: fetchError } = await supabase
         .from('carteiras')
         .select('saldo')
@@ -63,6 +90,7 @@ export default function CarteiraScreen({ navigation }) {
       const saldoAtual = carteiraData?.saldo || 0;
       const novoSaldo = saldoAtual + valorNumerico;
 
+      // Atualiza saldo no supabase
       const { error } = await supabase
         .from('carteiras')
         .upsert(
@@ -73,40 +101,54 @@ export default function CarteiraScreen({ navigation }) {
       if (error) throw error;
 
       Alert.alert('Sucesso', `Adicionado R$${valorNumerico.toFixed(2)} à sua carteira.`);
+
       setValor('');
-      carregarCarteira();
+      carregarCarteira(); // Atualiza saldo exibido
+
     } catch (err) {
       console.error('Erro ao adicionar saldo:', err);
       Alert.alert('Erro', 'Não foi possível atualizar o saldo.');
     }
   }
 
+  // =================================================
+  // Remover cartão salvo
+  // =================================================
   async function handleRemoverCartao(id) {
     Alert.alert('Remover', 'Deseja remover este cartão?', [
       { text: 'Cancelar', style: 'cancel' },
+
       {
         text: 'Remover',
         style: 'destructive',
         onPress: async () => {
+
           const { error } = await removerCartao(id);
+
           if (error) {
             Alert.alert('Erro', 'Não foi possível remover o cartão.');
             return;
           }
+
           carregarCartoes();
         },
       },
     ]);
   }
 
+  // Estilos dinâmicos do tema
   const styles = makeStyles(theme);
 
   return (
     <View style={styles.container}>
+
+      {/* Título da página */}
       <Text style={styles.title}>💳 Forma de Pagamento</Text>
 
+      {/* SELEÇÃO DE MÉTODO */}
       {formaSelecionada === null && (
         <>
+          {/* PIX */}
           <TouchableOpacity
             style={styles.option}
             onPress={() => navigation.navigate('Pix')}
@@ -114,6 +156,7 @@ export default function CarteiraScreen({ navigation }) {
             <Text style={styles.optionText}>⚡ PIX</Text>
           </TouchableOpacity>
 
+          {/* CARTÃO */}
           <TouchableOpacity
             style={styles.option}
             onPress={() => setFormaSelecionada('cartao')}
@@ -123,12 +166,14 @@ export default function CarteiraScreen({ navigation }) {
         </>
       )}
 
+      {/* GERENCIAR CARTÕES */}
       {formaSelecionada === 'cartao' && (
         <>
           <TouchableOpacity onPress={() => setFormaSelecionada(null)}>
             <Text style={styles.voltar}>⬅ Voltar</Text>
           </TouchableOpacity>
 
+          {/* Botão adicionar cartão */}
           <TouchableOpacity
             style={styles.option}
             onPress={() => navigation.navigate('AdicionarCartao')}
@@ -138,6 +183,7 @@ export default function CarteiraScreen({ navigation }) {
 
           <Text style={[styles.subtitle, { color: theme.colors.text }]}>Seus cartões</Text>
 
+          {/* Lista de cartões */}
           <FlatList
             data={cartoes}
             keyExtractor={(item) => item.id}
@@ -163,6 +209,7 @@ export default function CarteiraScreen({ navigation }) {
                   <Text style={[styles.cardText, { color: theme.colors.text }]}>
                     {item.nome_cartao} •••• {String(item.numero_cartao).slice(-4)}
                   </Text>
+
                   <TouchableOpacity onPress={() => handleRemoverCartao(item.id)}>
                     <Text style={{ color: '#FF4D4F', fontWeight: '700' }}>Remover</Text>
                   </TouchableOpacity>
@@ -173,6 +220,7 @@ export default function CarteiraScreen({ navigation }) {
         </>
       )}
 
+      {/* ADICIONAR SALDO */}
       {formaSelecionada === 'carteira' && (
         <>
           <TouchableOpacity onPress={() => setFormaSelecionada(null)}>
@@ -186,6 +234,7 @@ export default function CarteiraScreen({ navigation }) {
             </Text>
           </Text>
 
+          {/* Input valor */}
           <TextInput
             placeholder="Digite o valor para adicionar"
             keyboardType="numeric"
@@ -202,6 +251,7 @@ export default function CarteiraScreen({ navigation }) {
             ]}
           />
 
+          {/* Botão adicionar */}
           <TouchableOpacity
             style={[styles.button, { backgroundColor: theme.colors.button }]}
             onPress={adicionarSaldo}
@@ -216,6 +266,9 @@ export default function CarteiraScreen({ navigation }) {
   );
 }
 
+// =================================================
+// Estilos com suporte ao tema dark/light
+// =================================================
 function makeStyles(theme) {
   return StyleSheet.create({
     container: {

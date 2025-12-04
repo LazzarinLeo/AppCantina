@@ -1,10 +1,22 @@
+// Tela de Login do usuário
+
 import React, { useState } from "react";
-import { View, TextInput, TouchableOpacity, Text, Alert, StyleSheet } from "react-native";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  Alert,
+  StyleSheet,
+} from "react-native";
+
 import { supabase } from "../Services/supabase";
 import { useUser } from "../contexts/UserContext";
 import { useTheme } from "../contexts/ThemeContext";
+
 import bcrypt from "bcryptjs";
 
+// Necessário para funcionar no React Native
 bcrypt.setRandomFallback((len) => {
   const rand = new Uint8Array(len);
   for (let i = 0; i < len; i++) rand[i] = Math.floor(Math.random() * 256);
@@ -12,11 +24,13 @@ bcrypt.setRandomFallback((len) => {
 });
 
 export default function LoginScreen({ navigation }) {
-  const [identificador, setIdentificador] = useState("");
-  const [senha, setSenha] = useState("");
-  const { login } = useUser();
-  const { theme } = useTheme();
+  const [identificador, setIdentificador] = useState(""); // email OU nome
+  const [senha, setSenha] = useState("");                // senha digitada
 
+  const { login } = useUser();      // função global que salva o usuário logado
+  const { theme } = useTheme();     // tema atual
+
+  // Função principal de login
   async function fazerLogin() {
     if (!identificador || !senha) {
       Alert.alert("Preencha todos os campos!");
@@ -24,8 +38,11 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
+      // Verifica se digitou email (para escolher entre email/nome no Supabase)
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const isEmail = emailRegex.test(identificador);
+
+      // Busca usuário pelo nome OU email
       const { data: user, error } = await supabase
         .from("usuarios")
         .select("*")
@@ -37,6 +54,7 @@ export default function LoginScreen({ navigation }) {
         return;
       }
 
+      // Verifica senha usando bcryptjs
       const senhaCorreta = bcrypt.compareSync(senha, user.senha);
 
       if (!senhaCorreta) {
@@ -44,9 +62,12 @@ export default function LoginScreen({ navigation }) {
         return;
       }
 
+      // Login bem sucedido
       login(user);
       Alert.alert("Login realizado com sucesso!");
+
       navigation.navigate("Home");
+
     } catch (err) {
       Alert.alert("Erro inesperado", err.message);
     }
@@ -54,8 +75,11 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>Cantina Escolar</Text>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        Cantina Escolar
+      </Text>
 
+      {/* Campo email / nome */}
       <TextInput
         placeholder="Email ou Nome"
         value={identificador}
@@ -72,6 +96,7 @@ export default function LoginScreen({ navigation }) {
         placeholderTextColor={theme.colors.placeholder}
       />
 
+      {/* Campo senha */}
       <TextInput
         placeholder="Senha"
         secureTextEntry
@@ -88,6 +113,7 @@ export default function LoginScreen({ navigation }) {
         placeholderTextColor={theme.colors.placeholder}
       />
 
+      {/* Botão de login */}
       <TouchableOpacity
         style={[styles.button, { backgroundColor: theme.colors.button }]}
         onPress={fazerLogin}
@@ -97,6 +123,7 @@ export default function LoginScreen({ navigation }) {
         </Text>
       </TouchableOpacity>
 
+      {/* Link para cadastro */}
       <TouchableOpacity onPress={() => navigation.navigate("Signin")}>
         <Text style={[styles.link, { color: theme.colors.link }]}>
           Ainda não tem conta?{" "}
@@ -110,8 +137,17 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 30 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 40 },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 30,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 40,
+  },
   input: {
     width: "100%",
     borderRadius: 8,

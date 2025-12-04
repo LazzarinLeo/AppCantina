@@ -13,7 +13,7 @@ import {
   SafeAreaProvider,
   SafeAreaView,
 } from 'react-native-safe-area-context';
-
+//navegações
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -40,6 +40,8 @@ import PixScreen from './screens/PixScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+//Stacks
 
 function ProdutosStack() {
   return (
@@ -103,6 +105,8 @@ function AppRoutes() {
   const { user } = useContext(UserContext);
   const { theme } = useTheme();
 
+  //theme provider
+
   const navigationTheme =
     theme.mode === 'dark'
       ? {
@@ -129,6 +133,8 @@ function AppRoutes() {
             notification: theme.colors.highlight,
           },
         };
+
+//carteira provider
 
   return (
     <WalletProvider usuarioId={user?.id}>
@@ -200,7 +206,7 @@ function AppRoutes() {
     </WalletProvider>
   );
 }
-
+//função que adiciona ao app todos os providers globais
 export default function App() {
   return (
     <UserProvider>

@@ -1,3 +1,5 @@
+// Tela do administrador: permite editar os dados dos usuários
+
 import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
@@ -12,46 +14,55 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import { supabase } from '../Services/supabase';
-import { UserContext } from '../contexts/UserContext';
+
+import { useTheme } from '../contexts/ThemeContext'; // Tema escuro/claro
+import { supabase } from '../Services/supabase'; // Conexão com o banco
+import { UserContext } from '../contexts/UserContext'; // Usuário logado
 
 export default function AdminScreen() {
+
   const { theme } = useTheme();
   const { user, logout } = useContext(UserContext);
 
-  const [usuarios, setUsuarios] = useState([]);
+  const [usuarios, setUsuarios] = useState([]); // Lista de usuários
   const [loading, setLoading] = useState(true);
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false); // Modal de edição
+  const [usuarioAtual, setUsuarioAtual] = useState(null); // Usuário sendo editado
 
+  // Estados para edição
   const [novoNome, setNovoNome] = useState('');
   const [novoEmail, setNovoEmail] = useState('');
   const [ativo, setAtivo] = useState(true);
   const [novaTurma, setNovaTurma] = useState('');
 
+  // Busca todos os usuários no Supabase
   async function fetchUsuarios() {
     setLoading(true);
+
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
-      .order('turma', { ascending: true })
-      .order('id', { ascending: true });
+      .order('turma', { ascending: true }) // Ordena por turma
+      .order('id', { ascending: true }); // Depois por ID
 
     if (error) {
       Alert.alert('Erro ao buscar usuários', error.message);
     } else {
       setUsuarios(data);
     }
+
     setLoading(false);
   }
 
+  // Abre o modal para editar um usuário
   function abrirModalEdicao(usuario) {
     if (usuario.admin) {
       Alert.alert('Aviso', 'Não é possível editar usuários administradores!');
       return;
     }
+
+    // Preenche campos com os dados atuais
     setUsuarioAtual(usuario);
     setNovoNome(usuario.nome);
     setNovoEmail(usuario.email);
@@ -60,6 +71,7 @@ export default function AdminScreen() {
     setModalVisible(true);
   }
 
+  // Salva alterações do usuário no Supabase
   async function salvarEdicao() {
     if (!novoNome || !novoEmail || !novaTurma) {
       Alert.alert('Preencha todos os campos!');
@@ -84,8 +96,11 @@ export default function AdminScreen() {
 
       Alert.alert('Usuário atualizado com sucesso!');
       setModalVisible(false);
+
+      // Recarrega lista
       fetchUsuarios();
 
+      // Se desativou a própria conta → desloga
       if (usuarioAtual.id === user.id && !ativo) {
         Alert.alert('Você foi desativado', 'Sua conta foi desativada pelo administrador.');
         logout();
@@ -96,6 +111,7 @@ export default function AdminScreen() {
     }
   }
 
+  // Cria grupos agrupando usuários por turma
   const gruposPorTurma = usuarios.reduce((acc, u) => {
     const turma = u.turma || 'Sem turma';
     if (!acc[turma]) acc[turma] = [];
@@ -114,20 +130,32 @@ export default function AdminScreen() {
       {loading ? (
         <Text style={{ color: theme.colors.text }}>Carregando usuários...</Text>
       ) : (
+
+        // Exibe cada grupo de turma
         Object.keys(gruposPorTurma).map((turma) => (
           <View key={turma} style={{ marginBottom: 20 }}>
-            <Text style={[styles.turmaTitle, { color: theme.colors.text }]}>Turma: {turma}</Text>
+            <Text style={[styles.turmaTitle, { color: theme.colors.text }]}>
+              Turma: {turma}
+            </Text>
+
+            {/* Usuários dentro da turma */}
             {gruposPorTurma[turma].map((item) => (
-              <View key={item.id} style={[styles.userCard, { backgroundColor: theme.colors.card }]}>
+              <View
+                key={item.id}
+                style={[styles.userCard, { backgroundColor: theme.colors.card }]}
+              >
                 <Text style={[styles.userText, { color: theme.colors.text }]}>
-                  {item.nome} ({item.email}) {item.admin ? ' - Admin' : ''}
-                  {item.ativo ? ' - Desativado' : ' - Ativo '}
+                  {item.nome} ({item.email})
+                  {item.admin ? ' - Admin' : ''}
+                  {item.ativo ? ' - Ativo' : ' - Desativado'}
                 </Text>
+
+                {/* Botão editar */}
                 <View style={styles.buttonsContainer}>
                   <TouchableOpacity
                     style={[styles.button, { backgroundColor: '#3498db' }]}
                     onPress={() => abrirModalEdicao(item)}
-                    disabled={item.admin}
+                    disabled={item.admin} // Admin não pode ser editado
                   >
                     <Text style={styles.buttonText}>Editar</Text>
                   </TouchableOpacity>
@@ -138,14 +166,23 @@ export default function AdminScreen() {
         ))
       )}
 
+      {/* Modal de edição */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={styles.modalContainer}
         >
-          <ScrollView contentContainerStyle={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Editar Usuário</Text>
+          <ScrollView
+            contentContainerStyle={[
+              styles.modalContent,
+              { backgroundColor: theme.colors.background }
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+              Editar Usuário
+            </Text>
 
+            {/* Input nome */}
             <TextInput
               placeholder="Nome"
               value={novoNome}
@@ -154,6 +191,7 @@ export default function AdminScreen() {
               placeholderTextColor={theme.colors.placeholder}
             />
 
+            {/* Input email */}
             <TextInput
               placeholder="Email"
               value={novoEmail}
@@ -163,6 +201,7 @@ export default function AdminScreen() {
               placeholderTextColor={theme.colors.placeholder}
             />
 
+            {/* Input turma */}
             <TextInput
               placeholder="Turma"
               value={novaTurma}
@@ -171,8 +210,11 @@ export default function AdminScreen() {
               placeholderTextColor={theme.colors.placeholder}
             />
 
+            {/* Switch ativo/desativo */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-              <Text style={{ color: theme.colors.text, fontSize: 16, marginRight: 10 }}>Usuário Desativo:</Text>
+              <Text style={{ color: theme.colors.text, fontSize: 16, marginRight: 10 }}>
+                Usuário Desativado:
+              </Text>
               <Switch
                 value={ativo}
                 onValueChange={setAtivo}
@@ -181,6 +223,7 @@ export default function AdminScreen() {
               />
             </View>
 
+            {/* Botões */}
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: '#27ae60' }]}
@@ -188,6 +231,7 @@ export default function AdminScreen() {
               >
                 <Text style={styles.modalButtonText}>Salvar</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: '#e74c3c' }]}
                 onPress={() => setModalVisible(false)}
@@ -198,6 +242,7 @@ export default function AdminScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
+
     </ScrollView>
   );
 }
@@ -209,7 +254,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold', marginBottom: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
     textAlign: 'center'
   },
   turmaTitle: {

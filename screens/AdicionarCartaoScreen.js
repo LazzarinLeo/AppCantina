@@ -1,4 +1,6 @@
 // screens/AdicionarCartaoScreen.js
+
+// Importa ferramentas do React e React Native
 import React, { useState } from 'react';
 import {
   View,
@@ -12,22 +14,29 @@ import {
   Platform,
 } from 'react-native';
 
+// Função que salva o cartão no Supabase
 import { adicionarCartao } from '../Services/cartaoService';
+
+// Contexto para pegar os dados do usuário logado
 import { useUser } from '../contexts/UserContext';
+
+// Contexto para aplicar o tema claro/escuro
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function AdicionarCartaoScreen({ navigation }) {
-  const { user } = useUser();
-  const { theme } = useTheme();
+  const { user } = useUser(); // Usuário atual
+  const { theme } = useTheme(); // Tema atual (dark/light)
 
+  // Estados para controlar os campos do formulário
   const [nome, setNome] = useState('');
   const [numero, setNumero] = useState('');
   const [validade, setValidade] = useState('');
   const [cvv, setCvv] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Detecta bandeira automática do cartão baseado no número
   function detectarBandeira(n) {
-    n = n.replace(/\D/g, '');
+    n = n.replace(/\D/g, ''); // Remove qualquer coisa que não for número
     if (/^4/.test(n)) return 'Visa';
     if (/^5[1-5]/.test(n)) return 'Mastercard';
     if (/^3[47]/.test(n)) return 'Amex';
@@ -35,25 +44,29 @@ export default function AdicionarCartaoScreen({ navigation }) {
     return 'Cartão';
   }
 
+  // Função executada ao apertar "Salvar Cartão"
   async function salvar() {
+    // Validação: todos os campos precisam estar preenchidos
     if (!nome || !numero || !validade || !cvv) {
       Alert.alert('Erro', 'Preencha todos os campos.');
       return;
     }
 
-    setLoading(true);
+    setLoading(true); // Ativa "Salvando..."
 
-    const numeroLimpo = numero.replace(/\s/g, '');
+    const numeroLimpo = numero.replace(/\s/g, ''); // Remove espaços da máscara
 
+    // Objeto enviado ao Supabase
     const payload = {
       usuario_id: user.id,
       nome_impresso: nome,
       numero_cartao: numeroLimpo,
-      numero_encurtado: numeroLimpo.slice(-4),
+      numero_encurtado: numeroLimpo.slice(-4), // Exibe apenas os 4 últimos
       validade,
       bandeira: detectarBandeira(numeroLimpo),
     };
 
+    // Chama função que salva
     const { data, error } = await adicionarCartao(payload);
 
     setLoading(false);
@@ -65,9 +78,10 @@ export default function AdicionarCartaoScreen({ navigation }) {
     }
 
     Alert.alert('Sucesso', 'Cartão salvo com sucesso!');
-    navigation.goBack();
+    navigation.goBack(); // Volta para tela anterior
   }
 
+  // Gera estilos com base no tema atual
   const styles = makeStyles(theme);
 
   return (
@@ -78,6 +92,7 @@ export default function AdicionarCartaoScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Adicionar Cartão</Text>
 
+        {/* Campo nome */}
         <TextInput
           placeholder="Nome impresso"
           value={nome}
@@ -86,12 +101,13 @@ export default function AdicionarCartaoScreen({ navigation }) {
           style={styles.input}
         />
 
+        {/* Campo número com máscara */}
         <TextInput
           placeholder="Número do cartão"
           value={numero}
           onChangeText={(text) => {
-            const digits = text.replace(/\D/g, '');
-            const masked = digits.replace(/(.{4})/g, '$1 ').trim();
+            const digits = text.replace(/\D/g, ''); // Só números
+            const masked = digits.replace(/(.{4})/g, '$1 ').trim(); // Insere espaços
             setNumero(masked);
           }}
           keyboardType="numeric"
@@ -100,6 +116,7 @@ export default function AdicionarCartaoScreen({ navigation }) {
         />
 
         <View style={styles.row}>
+          {/* Validade MM/AA */}
           <TextInput
             placeholder="MM/AA"
             value={validade}
@@ -114,6 +131,7 @@ export default function AdicionarCartaoScreen({ navigation }) {
             style={[styles.input, styles.inputHalf]}
           />
 
+          {/* CVV */}
           <TextInput
             placeholder="CVV"
             secureTextEntry
@@ -125,6 +143,7 @@ export default function AdicionarCartaoScreen({ navigation }) {
           />
         </View>
 
+        {/* Botão salvar */}
         <TouchableOpacity
           onPress={salvar}
           style={[styles.button, { backgroundColor: theme.colors.button }]}

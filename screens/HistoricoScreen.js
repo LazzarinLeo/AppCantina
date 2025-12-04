@@ -1,3 +1,5 @@
+// Tela que exibe o histórico de compras do usuário
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -7,26 +9,32 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
+
 import { supabase } from '../Services/supabase';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function HistoricoScreen() {
-  const { user } = useUser();
-  const { theme } = useTheme();
+  const { user } = useUser();     // Obtém dados do usuário logado
+  const { theme } = useTheme();   // Estilos baseados no tema atual (claro/escuro)
 
-  const [compras, setCompras] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [itensAbertos, setItensAbertos] = useState({});
+  const [compras, setCompras] = useState([]);         // Lista de compras + itens
+  const [loading, setLoading] = useState(true);       // Controle de carregamento
+  const [itensAbertos, setItensAbertos] = useState({}); // Armazena quais compras estão abertas
 
+  // Carrega o histórico assim que o usuário estiver disponível
   useEffect(() => {
     if (user) carregarHistorico();
   }, [user]);
 
+  // -------------------------------------------
+  // Função responsável por buscar o histórico
+  // -------------------------------------------
   const carregarHistorico = async () => {
     try {
       setLoading(true);
 
+      // Busca as compras do usuário ordenando da mais recente para a mais antiga
       const { data: comprasData, error } = await supabase
         .from('historico_compras')
         .select('*')
@@ -35,6 +43,7 @@ export default function HistoricoScreen() {
 
       if (error) throw error;
 
+      // Para cada compra, buscamos seus itens correspondentes
       const comprasComItens = await Promise.all(
         comprasData.map(async (compra) => {
           const { data: itensData } = await supabase
@@ -42,26 +51,32 @@ export default function HistoricoScreen() {
             .select('*')
             .eq('compra_id', compra.id);
 
+          // Retorna a compra + seus itens em um único objeto
           return { ...compra, itens: itensData };
         })
       );
 
       setCompras(comprasComItens);
+
     } catch (e) {
       console.error('Erro ao carregar histórico:', e);
+
     } finally {
-      setLoading(false);
+      setLoading(false); // Finaliza carregamento
     }
   };
 
+  // Abre/fecha os itens de uma compra específica
   const toggleItens = (id) => {
     setItensAbertos((prev) => ({
       ...prev,
-      [id]: !prev[id],
+      [id]: !prev[id], // alterna entre true/false
     }));
   };
 
-  // ------------------ TELAS DE ESPERA / VAZIO ------------------
+  // -------------------------------------------------------
+  // TELAS DE CARREGAMENTO OU LISTA VAZIA
+  // -------------------------------------------------------
 
   if (loading) {
     return (
@@ -79,6 +94,7 @@ export default function HistoricoScreen() {
     );
   }
 
+  // Caso o usuário não tenha nenhuma compra registrada
   if (compras.length === 0) {
     return (
       <View
@@ -94,13 +110,17 @@ export default function HistoricoScreen() {
     );
   }
 
-  // ------------------ LISTA PRINCIPAL ------------------
+  // -------------------------------------------------------
+  // LISTA PRINCIPAL (HISTÓRICO)
+  // -------------------------------------------------------
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <FlatList
         data={compras}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()} // cada compra tem um id único
         renderItem={({ item }) => (
           <View
             style={[
@@ -111,11 +131,13 @@ export default function HistoricoScreen() {
               },
             ]}
           >
+            {/* Cabeçalho da compra (data + total + info pagamento) */}
             <TouchableOpacity onPress={() => toggleItens(item.id)}>
               <View style={styles.header}>
                 <Text style={[styles.date, { color: theme.colors.text }]}>
                   {new Date(item.created_at).toLocaleDateString('pt-BR')}
                 </Text>
+
                 <Text style={[styles.total, { color: theme.colors.highlight }]}>
                   Total: R$ {item.total.toFixed(2)}
                 </Text>
@@ -136,6 +158,7 @@ export default function HistoricoScreen() {
               </Text>
             </TouchableOpacity>
 
+            {/* Itens da compra (visíveis apenas quando expandido) */}
             {itensAbertos[item.id] && (
               <View
                 style={[
@@ -145,14 +168,21 @@ export default function HistoricoScreen() {
               >
                 {item.itens.map((it, index) => (
                   <View key={index} style={styles.itemRow}>
-                    <Text style={[styles.itemName, { color: theme.colors.text }]}>
+                    <Text
+                      style={[styles.itemName, { color: theme.colors.text }]}
+                    >
                       {it.produto_nome}
                     </Text>
+
                     <Text
-                      style={[styles.itemQty, { color: theme.colors.placeholder }]}
+                      style={[
+                        styles.itemQty,
+                        { color: theme.colors.placeholder },
+                      ]}
                     >
                       x{it.quantidade}
                     </Text>
+
                     <Text
                       style={[
                         styles.itemPrice,
@@ -172,7 +202,9 @@ export default function HistoricoScreen() {
   );
 }
 
-// ------------------------ ESTILOS ------------------------
+// -------------------------------------------------------
+// ESTILOS DA TELA
+// -------------------------------------------------------
 
 const styles = StyleSheet.create({
   container: {
@@ -185,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 12,
     borderWidth: 1,
-    elevation: 3,
+    elevation: 3, // leve sombra (no Android)
   },
 
   header: {

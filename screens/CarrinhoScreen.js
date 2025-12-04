@@ -1,145 +1,127 @@
+// CarrinhoScreen.js
+// Tela responsável por exibir os itens do carrinho, aplicar tickets,
+// calcular total final, finalizar a compra e gerar QR Code da compra.
+
 import React, { useContext } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  Alert, Platform, Modal, TextInput
+  Alert, Modal
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 
+// Contextos
 import { CartContext } from '../contexts/CartContext';
 import { WalletContext } from '../contexts/WalletContext';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 
+// Serviços de histórico
 import { criarHistoricoCompra } from '../Services/HistoricoCompras';
 import { adicionarItensCompra } from '../Services/HistoricoItens';
 
 export default function CarrinhoScreen({ navigation }) {
 
+  // Estados da tela
   const [modalVisible, setModalVisible] = React.useState(false);
   const [inputTickets, setInputTickets] = React.useState("");
-  const [descontoTicket, setDescontoTicket] = React.useState(0);
-  const [ticketsUsados, setTicketsUsados] = React.useState(0);
-
-  const [androidResolve, setAndroidResolve] = React.useState(null);
-
   const [qrVisible, setQrVisible] = React.useState(false);
   const [qrValue, setQrValue] = React.useState("");
 
+  // Lista de itens marcados como grátis usando tickets
+  const [itensGratis, setItensGratis] = React.useState([]);
+
+  // Contextos
   const { cartItems, removeFromCart, clearCart } = useContext(CartContext);
   const { tickets, descontarTickets, saldo, descontarSaldo } = useContext(WalletContext);
   const { user } = useUser();
   const { theme } = useTheme();
 
-  const total = cartItems.reduce(
-    (acc, item) => acc + item.preco * (item.quantidade || 1),
-    0
-  );
+  // ===============================
+  // CÁLCULO DO TOTAL FINAL DA COMPRA
+  // Exclui do cálculo itens que foram marcados como grátis
+  // ===============================
+  const totalFinal = cartItems.reduce((acc, item) => {
+    if (itensGratis.includes(item.cartId)) return acc;
+    return acc + item.preco * (item.quantidade || 1);
+  }, 0);
 
-  const totalFinal = Math.max(total - descontoTicket, 0);
-  const pedirTickets = () => {
-    return new Promise((resolve) => {
-      if (Platform.OS === "ios") {
-        Alert.prompt(
-          "Usar Tickets",
-          `Você possui ${tickets} tickets. Quantos deseja usar?`,
-          [
-            { text: "Cancelar", style: "cancel", onPress: () => resolve(null) },
-            {
-              text: "Usar",
-              onPress: (valor) => {
-                const qtd = Number(valor);
-                if (isNaN(qtd) || qtd < 0 || qtd > tickets) {
-                  Alert.alert("Erro", "Quantidade inválida.");
-                  resolve(null);
-                } else resolve(qtd);
-              }
-            }
-          ],
-          "plain-text"
-        );
+  // ===============================
+  // Marcar / desmarcar item como grátis via ticket
+  // ===============================
+  const toggleItemGratis = (id) => {
 
-      } else {
-        setInputTickets("");
-        setModalVisible(true);
-        setAndroidResolve(() => resolve);
-      }
-    });
-  };
-
-  const confirmarTicketsAndroid = () => {
-    const qtd = Number(inputTickets);
-
-    if (isNaN(qtd) || qtd < 0 || qtd > tickets) {
-      Alert.alert("Erro", "Quantidade inválida.");
+    // Se já está marcado como grátis → desmarca
+    if (itensGratis.includes(id)) {
+      setItensGratis(prev => prev.filter(x => x !== id));
       return;
     }
 
-    setModalVisible(false);
-
-    if (androidResolve) androidResolve(qtd);
-
-    setAndroidResolve(null);
-  };
-
-
-  const usarTickets = async () => {
-    if (tickets <= 0) {
-      Alert.alert("Sem tickets", "Você não possui tickets.");
+    // Verifica se o usuário tem tickets suficientes
+    if (itensGratis.length >= tickets) {
+      Alert.alert("Limite de Tickets", "Você não tem tickets suficientes.");
       return;
     }
 
-    const escolha = await pedirTickets();
-
-    if (escolha === null) return;
-
-    const desconto = (total * (escolha * 5)) / 100;
-
-    setDescontoTicket(desconto);
-    setTicketsUsados(escolha);
+    // Marca item como grátis
+    setItensGratis(prev => [...prev, id]);
   };
 
+  // ===============================
+  // FINALIZAR COMPRA
+  // Salva no Supabase, gera histórico e QR Code
+  // ===============================
   const handleCheckout = async () => {
+
     if (cartItems.length === 0) {
       Alert.alert("Carrinho vazio", "Adicione itens antes.");
       return;
     }
 
-    const descontoAplicado = (total * (ticketsUsados * 5)) / 100;
-    const totalFinalCheckout = Math.max(total - descontoAplicado, 0);
-
-    if (saldo < totalFinalCheckout) {
+    if (saldo < totalFinal) {
       Alert.alert("Saldo insuficiente", "Deposite mais dinheiro.");
       return;
     }
 
     try {
-      if (ticketsUsados > 0) await descontarTickets(ticketsUsados);
+      const ticketsUsados = itensGratis.length;
 
-      await descontarSaldo(totalFinalCheckout);
+      // Desconta tickets
+      if (ticketsUsados > 0) {
+        await descontarTickets(ticketsUsados);
+      }
 
+      // Desconta saldo
+      await descontarSaldo(totalFinal);
+
+      // Identificação do usuário
       const user_id = user?.id;
       if (!user_id) {
         Alert.alert("Erro", "Usuário não autenticado.");
         return;
       }
 
+      // Registro da compra no histórico
       const compra = await criarHistoricoCompra(
         user_id,
-        totalFinalCheckout,
+        totalFinal,
         "concluida",
         "Carteira"
       );
 
+      // Registrar itens da compra
       await adicionarItensCompra(compra.id, cartItems);
 
+      // Limpa o carrinho após finalizar
       clearCart();
 
+      // Monta os dados do QR Code
       const dadosQR = {
         compraId: compra.id,
         usuarioId: user_id,
-        total: totalFinalCheckout,
+        itensGratis,
+        total: totalFinal,
         horario: new Date().toISOString()
       };
 
@@ -155,10 +137,12 @@ export default function CarrinhoScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
 
+      {/* HEADER */}
       <View style={[styles.headerBar, { backgroundColor: theme.colors.button }]}>
         <Text style={styles.headerText}>🛒 Seu Carrinho</Text>
       </View>
 
+      {/* LISTA DE ITENS */}
       {cartItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="cart-outline" size={60} color="#BDBDBD" />
@@ -170,79 +154,76 @@ export default function CarrinhoScreen({ navigation }) {
           keyExtractor={(item) => item.cartId}
           renderItem={({ item }) => (
             <View style={[styles.itemCard, { backgroundColor: theme.colors.card }]}>
+
               <View>
+                {/* Nome do produto */}
                 <Text style={[styles.itemName, { color: theme.colors.text }]}>
                   {item.nome}
                 </Text>
+
+                {/* Preço */}
                 <Text style={styles.itemPrice}>R$ {item.preco.toFixed(2)}</Text>
               </View>
 
-              <TouchableOpacity
-                onPress={() => removeFromCart(item.cartId)}
-                style={styles.removeButton}
-              >
-                <Ionicons name="trash-outline" size={22} color="#fff" />
-              </TouchableOpacity>
+              {/* Botões: Ticket + Remover */}
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+
+                {/* BOTÃO DE TICKET */}
+                <TouchableOpacity
+                  onPress={() => toggleItemGratis(item.cartId)}
+                  style={[
+                    styles.ticketButton,
+                    { backgroundColor: itensGratis.includes(item.cartId) ? "#43A047" : "#AAA" }
+                  ]}
+                >
+                  <Text style={{ color: "#fff", fontWeight: "700" }}>
+                    {itensGratis.includes(item.cartId) ? "✔ Grátis" : "Ticket"}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* REMOVER ITEM DO CARRINHO */}
+                <TouchableOpacity
+                  onPress={() => removeFromCart(item.cartId)}
+                  style={styles.removeButton}
+                >
+                  <Ionicons name="trash-outline" size={22} color="#fff" />
+                </TouchableOpacity>
+
+              </View>
             </View>
           )}
         />
       )}
 
+      {/* FOOTER */}
       <View style={styles.footer}>
+
+        {/* TOTAL */}
         <View style={styles.priceRow}>
-          <Text style={[styles.totalLabel, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}>Total:</Text>
-          <Text style={[styles.totalValor, theme.mode === 'dark' ? {color:'#703dff'} : {color:'#FF7043'}]}>R$ {totalFinal.toFixed(2)}</Text>
+          <Text style={[styles.totalLabel, theme.mode === 'dark' ? { color: '#daead7' } : { color: '#4E342E' }]}>
+            Total:
+          </Text>
+          <Text style={[styles.totalValor, theme.mode === 'dark' ? { color: '#703dff' } : { color: '#FF7043' }]}>
+            R$ {totalFinal.toFixed(2)}
+          </Text>
         </View>
 
-        {descontoTicket > 0 && (
-          <Text style={{ color: "#43A047", marginTop: 6 }}>
-            🎫 Desconto: -R$ {descontoTicket.toFixed(2)}
-          </Text>
-        )}
-
-        <TouchableOpacity onPress={usarTickets} style={styles.useTicketButton}>
-          <Text style={styles.checkoutText}>Usar Tickets</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleCheckout} style={[styles.checkoutButton, theme.mode === 'dark' ? { backgroundColor: '#703dff' } : { backgroundColor: '#FF7043' }]}>
+        {/* BOTÃO FINALIZAR */}
+        <TouchableOpacity
+          onPress={handleCheckout}
+          style={[
+            styles.checkoutButton,
+            theme.mode === 'dark'
+              ? { backgroundColor: '#703dff' }
+              : { backgroundColor: '#FF7043' }
+          ]}
+        >
           <Text style={styles.checkoutText}>Finalizar Compra</Text>
         </TouchableOpacity>
+
       </View>
 
-      <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={styles.qrOverlay}>
-          <View style={[styles.qrBox, { backgroundColor: "#fff" }]}>
-
-            <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 15 }}>
-              Usar Tickets
-            </Text>
-
-            <TextInput
-              placeholder="Quantidade"
-              keyboardType="numeric"
-              value={inputTickets}
-              onChangeText={setInputTickets}
-              style={{
-                borderWidth: 1,
-                borderColor: "#ccc",
-                width: "80%",
-                borderRadius: 8,
-                padding: 10,
-                marginBottom: 15
-              }}
-            />
-
-            <TouchableOpacity
-              onPress={confirmarTicketsAndroid}
-              style={styles.closeButton}
-            >
-              <Text style={{ color: "#fff", fontWeight: "700" }}>Confirmar</Text>
-            </TouchableOpacity>
-
-          </View>
-        </View>
-      </Modal>
-
+      {/* MODAL DO QR CODE */}
       <Modal visible={qrVisible} transparent animationType="fade">
         <View style={styles.qrOverlay}>
           <View style={[styles.qrBox, { backgroundColor: theme.mode === "dark" ? "#000" : "#fff" }]}>
@@ -258,10 +239,12 @@ export default function CarrinhoScreen({ navigation }) {
               QR Code da Compra
             </Text>
 
+            {/* O QR CODE EM SI */}
             <View style={{ backgroundColor: "#fff", padding: 10, borderRadius: 8 }}>
               <QRCode value={qrValue || " "} size={230} />
             </View>
 
+            {/* FECHAR */}
             <TouchableOpacity
               onPress={() => setQrVisible(false)}
               style={styles.closeButton}
@@ -277,6 +260,7 @@ export default function CarrinhoScreen({ navigation }) {
   );
 }
 
+/* ------------------------ STYLES ------------------------ */
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 16 },
 
@@ -313,6 +297,12 @@ const styles = StyleSheet.create({
   itemName: { fontSize: 17, fontWeight: "700" },
   itemPrice: { fontSize: 16, color: "#43A047", marginTop: 4 },
 
+  ticketButton: {
+    padding: 10,
+    borderRadius: 10,
+    marginRight: 10
+  },
+
   removeButton: {
     backgroundColor: "#E53935",
     padding: 10,
@@ -327,23 +317,14 @@ const styles = StyleSheet.create({
     marginVertical: 6
   },
 
-  totalLabel: { fontSize: 18, fontWeight: "700", color: "#333" },
-  totalValor: { fontSize: 18, fontWeight: "700", color: "#FF7043" },
+  totalLabel: { fontSize: 18, fontWeight: "700" },
+  totalValor: { fontSize: 18, fontWeight: "700" },
 
   checkoutButton: {
-    backgroundColor: "#FF7043",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
     marginTop: 12
-  },
-
-  useTicketButton: {
-    backgroundColor: "#43A047",
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 10
   },
 
   checkoutText: { color: "#fff", fontSize: 17, fontWeight: "700" },

@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import Produtos from './Mock.json';
 
-// 🔹 Envia os produtos do Mock.json para o Supabase (sem o campo id)
+//  Envia os produtos do Mock.json para o Supabase (sem o campo id)
 export const uploadMockToSupabase = async () => {
   try {
     const { count } = await supabase
@@ -31,7 +31,7 @@ export const uploadMockToSupabase = async () => {
   }
 };
 
-// 🔹 Busca os produtos diretamente do banco
+//  Busca os produtos diretamente do banco
 export const getProdutos = async () => {
   try {
     const { data, error } = await supabase

@@ -1,3 +1,12 @@
+// ---------------------------------------------------------------
+//  PRODUTOS SCREEN
+//  - Lista os produtos (Mock.json)
+//  - Suporta tema claro/escuro
+//  - Favoritos com animação + salvamento por usuário no AsyncStorage
+//  - Botão de adicionar ao carrinho com animação
+//  - Cabeçalho com saldo e tickets
+// ---------------------------------------------------------------
+
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import {
   View,
@@ -11,31 +20,43 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+// Contextos da aplicação
 import { CartContext } from '../contexts/CartContext';
 import { WalletContext } from '../contexts/WalletContext';
 import { UserContext } from '../contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Mock dos produtos
 const Produtos = require('../Services/Mock.json');
 
+// Dimensões responsivas
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 12;
 const NUM_COLS = 2;
 const CARD_WIDTH = (width - (CARD_MARGIN * (NUM_COLS + 1)) - 32) / NUM_COLS;
 
 export default function ProdutosScreen() {
+  // Lista de favoritos (salva por usuário)
   const [favoritos, setFavoritos] = useState([]);
+
+  // Contextos globais
   const { addToCart, cartItems } = useContext(CartContext);
   const { saldo, tickets } = useContext(WalletContext);
   const { user } = useContext(UserContext);
   const { theme } = useTheme();
   const navigation = useNavigation();
 
+  // Armazena valores animados por produto
   const heartScales = useRef({}).current;
   const buttonScales = useRef({}).current;
 
+  // -------------------------------------------------------------
+  // Carrega favoritos do AsyncStorage ao abrir a tela
+  // -------------------------------------------------------------
   useEffect(() => {
     const loadFavoritos = async () => {
       if (!user?.id) return;
@@ -45,55 +66,111 @@ export default function ProdutosScreen() {
     loadFavoritos();
   }, [user]);
 
+  // -------------------------------------------------------------
+  // Salva favoritos sempre que modificados
+  // -------------------------------------------------------------
   useEffect(() => {
     if (!user?.id) return;
     AsyncStorage.setItem(`favoritos_${user.id}`, JSON.stringify(favoritos));
   }, [favoritos, user]);
 
+  // -------------------------------------------------------------
+  // Pega animação individual para cada produto (coração)
+  // -------------------------------------------------------------
   const getHeartScale = (id) => {
     if (!heartScales[id]) heartScales[id] = new Animated.Value(1);
     return heartScales[id];
   };
 
+  // -------------------------------------------------------------
+  // Pega animação para botão de adicionar ao carrinho
+  // -------------------------------------------------------------
   const getButtonScale = (id) => {
     if (!buttonScales[id]) buttonScales[id] = new Animated.Value(1);
     return buttonScales[id];
   };
 
+  // -------------------------------------------------------------
+  // Alterna produto como favorito + anima ancorna
+  // -------------------------------------------------------------
   const toggleFavorito = (id) => {
     const isFav = favoritos.includes(id);
-    setFavoritos(prev => isFav ? prev.filter(x => x !== id) : [...prev, id]);
+
+    // Alterna entre adicionar/remover
+    setFavoritos(prev =>
+      isFav ? prev.filter(x => x !== id) : [...prev, id]
+    );
+
+    // Anima o coração
     const scale = getHeartScale(id);
     scale.setValue(0.8);
-    Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+    Animated.spring(scale, {
+      toValue: 1,
+      friction: 4,
+      useNativeDriver: true,
+    }).start();
   };
 
+  // -------------------------------------------------------------
+  // Animação ao pressionar botão de adicionar
+  // -------------------------------------------------------------
   const pressInButton = (id) => {
-    const scale = getButtonScale(id);
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true }).start();
+    Animated.spring(getButtonScale(id), {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
   };
 
   const pressOutButton = (id) => {
-    const scale = getButtonScale(id);
-    Animated.spring(scale, { toValue: 1, friction: 6, useNativeDriver: true }).start();
+    Animated.spring(getButtonScale(id), {
+      toValue: 1,
+      friction: 6,
+      useNativeDriver: true,
+    }).start();
   };
 
+  // -------------------------------------------------------------
+  // RENDERIZAÇÃO DA TELA
+  // -------------------------------------------------------------
   return (
-    <View style={[styles.container, { backgroundColor: theme.mode === 'dark' ? '#121212' : '#f8f8f8' }]}>
-      {/* Cabeçalho */}
-      <View style={[theme.mode === 'dark' ? { backgroundColor: '#703dff' } : { backgroundColor: '#FF7043' }, styles.header]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.mode === 'dark' ? '#121212' : '#f8f8f8' },
+      ]}
+    >
+      {/* ------------------------------------------------------ */}
+      {/* CABEÇALHO */}
+      {/* ------------------------------------------------------ */}
+      <View
+        style={[
+          theme.mode === 'dark'
+            ? { backgroundColor: '#703dff' }
+            : { backgroundColor: '#FF7043' },
+          styles.header,
+        ]}
+      >
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Minha Loja</Text>
-          <Text style={styles.headerSubtitle}>Produtos selecionados para você</Text>
+          <Text style={styles.headerSubtitle}>
+            Produtos selecionados para você
+          </Text>
         </View>
+
+        {/* SALDO + CARRINHO */}
         <View style={styles.headerRight}>
-          <Text style={styles.saldo}>💰 {saldo.toFixed(2)} | 🎟️ {tickets}</Text>
+          <Text style={styles.saldo}>
+            💰 {saldo.toFixed(2)} | 🎟️ {tickets}
+          </Text>
+
           <TouchableOpacity
             style={styles.cartIcon}
             onPress={() => navigation.navigate('Carrinho')}
             activeOpacity={0.8}
           >
             <Ionicons name="cart" size={26} color="#fff" />
+
+            {/* Badge do carrinho */}
             {cartItems.length > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{cartItems.length}</Text>
@@ -103,34 +180,84 @@ export default function ProdutosScreen() {
         </View>
       </View>
 
-      <Text style={[styles.titulo, { color: theme.mode === 'dark' ? '#fff' : '#3E2723' }]}>Catálogo</Text>
+      {/* Título */}
+      <Text
+        style={[
+          styles.titulo,
+          { color: theme.mode === 'dark' ? '#fff' : '#3E2723' },
+        ]}
+      >
+        Catálogo
+      </Text>
 
+      {/* LISTA PRINCIPAL */}
       <FlatList
         data={Produtos}
+        numColumns={NUM_COLS}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.lista}
-        numColumns={NUM_COLS}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={() => {
-          const favoritosList = Produtos.filter(p => favoritos.includes(p.id));
+          // Produtos favoritos
+          const favoritosList = Produtos.filter(p =>
+            favoritos.includes(p.id)
+          );
           if (favoritosList.length === 0) return null;
+
           return (
             <View style={{ marginVertical: 12 }}>
-              <Text style={[styles.subTitulo, { color: theme.mode === 'dark' ? '#fff' : '#3E2723' }]}>
+              <Text
+                style={[
+                  styles.subTitulo,
+                  { color: theme.mode === 'dark' ? '#fff' : '#3E2723' },
+                ]}
+              >
                 Seus Favoritos
               </Text>
+
+              {/* Lista horizontal de favoritos */}
               <FlatList
                 data={favoritosList}
                 horizontal
-                showsHorizontalScrollIndicator={false}
                 keyExtractor={item => item.id.toString()}
+                showsHorizontalScrollIndicator={false}
                 renderItem={({ item }) => (
-                  <View style={[styles.favCard, { backgroundColor: theme.mode === 'dark' ? '#1E1E1E' : '#fff' }]}>
-                    <Image source={{ uri: item.imagem }} style={styles.favImage} resizeMode="cover" />
-                    <Text style={[styles.favNome, { color: theme.mode === 'dark' ? '#fff' : '#3E2723' }]} numberOfLines={1}>
+                  <View
+                    style={[
+                      styles.favCard,
+                      {
+                        backgroundColor:
+                          theme.mode === 'dark' ? '#1E1E1E' : '#fff',
+                      },
+                    ]}
+                  >
+                    <Image
+                      source={{ uri: item.imagem }}
+                      style={styles.favImage}
+                      resizeMode="cover"
+                    />
+
+                    <Text
+                      style={[
+                        styles.favNome,
+                        { color: theme.mode === 'dark' ? '#fff' : '#3E2723' },
+                      ]}
+                      numberOfLines={1}
+                    >
                       {item.nome}
                     </Text>
-                    <Text style={[styles.favPreco, { color: theme.mode === 'dark' ? '#80CBC4' : '#009688' }]}>
+
+                    <Text
+                      style={[
+                        styles.favPreco,
+                        {
+                          color:
+                            theme.mode === 'dark'
+                              ? '#80CBC4'
+                              : '#009688',
+                        },
+                      ]}
+                    >
                       R$ {item.preco.toFixed(2)}
                     </Text>
                   </View>
@@ -145,39 +272,92 @@ export default function ProdutosScreen() {
           const buttonScale = getButtonScale(item.id);
 
           return (
-            <View style={[styles.card, { width: CARD_WIDTH, backgroundColor: theme.mode === 'dark' ? '#1E1E1E' : '#fff' }]}>
+            <View
+              style={[
+                styles.card,
+                {
+                  width: CARD_WIDTH,
+                  backgroundColor:
+                    theme.mode === 'dark' ? '#1E1E1E' : '#fff',
+                },
+              ]}
+            >
+              {/* Imagem + coração + preço */}
               <View style={styles.imageWrap}>
-                <Image source={{ uri: item.imagem }} style={styles.imagem} resizeMode="cover" />
+                <Image
+                  source={{ uri: item.imagem }}
+                  style={styles.imagem}
+                  resizeMode="cover"
+                />
+
+                {/* Tag do preço */}
                 <View style={styles.priceTag}>
-                  <Text style={styles.priceTagText}>R$ {item.preco.toFixed(2)}</Text>
+                  <Text style={styles.priceTagText}>
+                    R$ {item.preco.toFixed(2)}
+                  </Text>
                 </View>
+
+                {/* Botão de favorito */}
                 <Pressable
                   style={styles.favWrap}
                   onPress={() => toggleFavorito(item.id)}
                   android_ripple={{ color: '#ffffff22', radius: 20 }}
                 >
-                  <Animated.View style={{ transform: [{ scale: heartScale }] }}>
-                    <Ionicons name={isFavorito ? 'heart' : 'heart-outline'} size={20} color={isFavorito ? '#E53935' : '#fff'} />
+                  <Animated.View
+                    style={{ transform: [{ scale: heartScale }] }}
+                  >
+                    <Ionicons
+                      name={isFavorito ? 'heart' : 'heart-outline'}
+                      size={20}
+                      color={isFavorito ? '#E53935' : '#fff'}
+                    />
                   </Animated.View>
                 </Pressable>
               </View>
 
+              {/* Informações */}
               <View style={styles.info}>
-                <Text numberOfLines={2} style={[styles.nome, { color: theme.mode === 'dark' ? '#fff' : '#3E2723' }]}>
+                <Text
+                  numberOfLines={2}
+                  style={[
+                    styles.nome,
+                    { color: theme.mode === 'dark' ? '#fff' : '#3E2723' },
+                  ]}
+                >
                   {item.nome}
                 </Text>
+
                 <View style={styles.row}>
-                  <Text style={[styles.precoSmall, { color: theme.mode === 'dark' ? '#80CBC4' : '#009688' }]}>
+                  {/* Preço pequeno */}
+                  <Text
+                    style={[
+                      styles.precoSmall,
+                      {
+                        color:
+                          theme.mode === 'dark' ? '#80CBC4' : '#009688',
+                      },
+                    ]}
+                  >
                     R$ {item.preco.toFixed(2)}
                   </Text>
+
+                  {/* Botão adicionar ao carrinho */}
                   <Pressable
                     onPress={() => addToCart(item)}
                     onPressIn={() => pressInButton(item.id)}
                     onPressOut={() => pressOutButton(item.id)}
-                    android_ripple={{ color: '#00000010', borderless: false }}
+                    android_ripple={{ color: '#00000010' }}
                     style={{ marginLeft: 8 }}
                   >
-                    <Animated.View style={[styles.addButton, theme.mode === 'dark' ? { backgroundColor: '#703dff' } : { backgroundColor: '#FF7043' } , { transform: [{ scale: buttonScale }] }]}>
+                    <Animated.View
+                      style={[
+                        styles.addButton,
+                        theme.mode === 'dark'
+                          ? { backgroundColor: '#703dff' }
+                          : { backgroundColor: '#FF7043' },
+                        { transform: [{ scale: buttonScale }] },
+                      ]}
+                    >
                       <Ionicons name="cart" size={16} color="#fff" />
                       <Text style={styles.addButtonText}>Adicionar</Text>
                     </Animated.View>
@@ -192,11 +372,12 @@ export default function ProdutosScreen() {
   );
 }
 
+// ---------------------------------------------------------------
+// ESTILOS
+// ---------------------------------------------------------------
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
+  container: { flex: 1, paddingHorizontal: 16 },
+
   header: {
     marginTop: 40,
     marginBottom: 8,
@@ -207,24 +388,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 6,
   },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  headerSubtitle: {
-    color: '#ffd9c9',
-    fontSize: 12,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  saldo: {
-    color: '#fff',
-    fontWeight: '700',
-    marginRight: 10,
-  },
+
+  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  headerSubtitle: { color: '#ffd9c9', fontSize: 12 },
+
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
+  saldo: { color: '#fff', fontWeight: '700', marginRight: 10 },
+
   cartIcon: {
     width: 44,
     height: 44,
@@ -234,6 +404,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
   },
+
   badge: {
     position: 'absolute',
     right: -6,
@@ -244,27 +415,20 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     elevation: 4,
   },
-  badgeText: {
-    color: '#E53935',
-    fontWeight: '700',
-    fontSize: 12,
-  },
+
+  badgeText: { color: '#E53935', fontWeight: '700', fontSize: 12 },
+
   titulo: {
     fontSize: 22,
     fontWeight: '800',
     marginTop: 16,
     marginBottom: 8,
   },
-  subTitulo: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  lista: {
-    paddingBottom: 30,
-    paddingTop: 6,
-    gap: 12,
-  },
+
+  subTitulo: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
+
+  lista: { paddingBottom: 30, paddingTop: 6, gap: 12 },
+
   card: {
     borderRadius: 14,
     margin: CARD_MARGIN / 2,
@@ -275,14 +439,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
-  imageWrap: {
-    position: 'relative',
-    backgroundColor: '#f5f5f5',
-  },
-  imagem: {
-    width: '100%',
-    height: 140,
-  },
+
+  imageWrap: { position: 'relative', backgroundColor: '#f5f5f5' },
+  imagem: { width: '100%', height: 140 },
+
   priceTag: {
     position: 'absolute',
     left: 8,
@@ -297,6 +457,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
   },
+
   favWrap: {
     position: 'absolute',
     right: 8,
@@ -305,25 +466,24 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 6,
   },
-  info: {
-    padding: 10,
-  },
+
+  info: { padding: 10 },
+
   nome: {
     fontWeight: '700',
     fontSize: 14,
     marginBottom: 8,
   },
+
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  precoSmall: {
-    fontWeight: '800',
-    fontSize: 14,
-  },
+
+  precoSmall: { fontWeight: '800', fontSize: 14 },
+
   addButton: {
-    backgroundColor: '#FF7043',
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 8,
@@ -332,12 +492,9 @@ const styles = StyleSheet.create({
     gap: 6,
     elevation: 3,
   },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    marginLeft: 6,
-    fontSize: 13,
-  },
+
+  addButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+
   favCard: {
     width: 120,
     borderRadius: 12,
@@ -345,20 +502,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
     elevation: 3,
   },
-  favImage: {
-    width: '100%',
-    height: 80,
-    borderRadius: 8,
-  },
-  favNome: {
-    fontWeight: '700',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  favPreco: {
-    fontWeight: '700',
-    fontSize: 12,
-    marginTop: 2,
-  },
-});
 
+  favImage: { width: '100%', height: 80, borderRadius: 8 },
+  favNome: { fontWeight: '700', fontSize: 12, marginTop: 4 },
+  favPreco: { fontWeight: '700', fontSize: 12, marginTop: 2 },
+});

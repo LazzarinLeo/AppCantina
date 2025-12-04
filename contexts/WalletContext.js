@@ -2,19 +2,22 @@ import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '../Services/supabase';
 import { Alert } from 'react-native';
 
+// Criando contexto da carteira do usuário
 export const WalletContext = createContext();
 
 export const WalletProvider = ({ usuarioId, children }) => {
+  // Estados locais da carteira
   const [saldo, setSaldo] = useState(0);
   const [tickets, setTickets] = useState(0);
 
+  // Carrega saldo e tickets do Supabase
   async function carregarCarteira() {
     try {
       const { data, error } = await supabase
         .from('carteiras')
         .select('saldo, ticket')
         .eq('usuario_id', usuarioId)
-        .maybeSingle();
+        .maybeSingle(); // retorna apenas 1 registro
 
       if (error) throw error;
 
@@ -28,44 +31,53 @@ export const WalletProvider = ({ usuarioId, children }) => {
     }
   }
 
+  // Desconta saldo e atualiza no banco
   const descontarSaldo = async (valor) => {
-    setSaldo(prev => {
+    setSaldo((prev) => {
       const novoSaldo = prev - valor;
+
       supabase
         .from('carteiras')
         .update({ saldo: novoSaldo })
         .eq('usuario_id', usuarioId)
         .then(({ error }) => {
-          if (error) console.error('Erro ao atualizar saldo no banco:', error);
+          if (error) console.error('Erro ao atualizar saldo:', error);
         });
+
       return novoSaldo;
     });
   };
 
+  // Desconta tickets e salva no banco
   const descontarTickets = async (valor) => {
-    setTickets(prev => {
+    setTickets((prev) => {
       const novoValor = prev - valor;
+
       supabase
-        .from("carteiras")
+        .from('carteiras')
         .update({ ticket: novoValor })
-        .eq("usuario_id", usuarioId)
+        .eq('usuario_id', usuarioId)
         .then(({ error }) => {
-          if (error) console.error("Erro ao atualizar tickets no banco:", error);
+          if (error) console.error('Erro ao atualizar tickets:', error);
         });
+
       return novoValor;
     });
   };
 
+  // Incrementa 1 ticket (chamado 1x por dia)
   const incrementarTicket = () => {
     setTickets((prevTickets) => {
       const novoTicket = prevTickets + 1;
+
       supabase
         .from('carteiras')
         .update({ ticket: novoTicket })
         .eq('usuario_id', usuarioId)
         .then(({ error }) => {
-          if (error) console.error('Erro ao atualizar ticket no banco:', error);
+          if (error) console.error('Erro ao atualizar ticket:', error);
         });
+
       return novoTicket;
     });
   };
@@ -73,12 +85,15 @@ export const WalletProvider = ({ usuarioId, children }) => {
   useEffect(() => {
     if (!usuarioId) return;
 
+    // Carrega carteira do Supabase
     carregarCarteira();
 
+    // Incrementa 1 ticket automaticamente a cada 24h
     const intervalo = setInterval(() => {
       incrementarTicket();
     }, 24 * 60 * 60 * 1000);
 
+    // Escuta atualizações em tempo real
     const canal = supabase
       .channel(`carteira_realtime_${usuarioId}`)
       .on(
@@ -91,6 +106,7 @@ export const WalletProvider = ({ usuarioId, children }) => {
         },
         async (payload) => {
           const novaCarteira = payload.new;
+
           if (novaCarteira) {
             setSaldo(novaCarteira.saldo ?? 0);
             setTickets(novaCarteira.ticket ?? 0);
@@ -101,6 +117,7 @@ export const WalletProvider = ({ usuarioId, children }) => {
       )
       .subscribe();
 
+    // Limpa listeners quando componente desmonta
     return () => {
       clearInterval(intervalo);
       supabase.removeChannel(canal);

@@ -1,7 +1,9 @@
 import React, { createContext, useState, useContext } from 'react';
 
+// Criando contexto para tema claro/escuro
 const ThemeContext = createContext();
 
+// Tema claro
 const lightTheme = {
   mode: 'light',
   colors: {
@@ -21,6 +23,7 @@ const lightTheme = {
   },
 };
 
+// Tema escuro
 const darkTheme = {
   mode: 'dark',
   colors: {
@@ -41,10 +44,12 @@ const darkTheme = {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(lightTheme); 
+  // Estado inicial: tema claro
+  const [theme, setTheme] = useState(lightTheme);
 
+  // Alterna entre claro e escuro
   const toggleTheme = () => {
-    setTheme(prev => (prev.mode === 'light' ? darkTheme : lightTheme));
+    setTheme((prev) => (prev.mode === 'light' ? darkTheme : lightTheme));
   };
 
   return (
@@ -54,4 +59,5 @@ export const ThemeProvider = ({ children }) => {
   );
 };
 
+// Hook para usar tema facilmente em qualquer tela
 export const useTheme = () => useContext(ThemeContext);

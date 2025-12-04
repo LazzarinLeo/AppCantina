@@ -1,20 +1,25 @@
 import React, { createContext, useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
+// Criando contexto do usuário
 export const UserContext = createContext();
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
+  // Estado do usuário logado (ou null)
   const [user, setUser] = useState(null);
 
+  // Salva dados do usuário ao logar
   const login = (userData) => {
     setUser(userData);
   };
 
+  // Remove usuário ao deslogar
   const logout = () => {
     setUser(null);
   };
 
+  // Caso o usuário esteja bloqueado (ativo = false)
   if (user && user.ativo === true) {
     return (
       <View style={styles.blockedContainer}>
@@ -29,6 +34,7 @@ export const UserProvider = ({ children }) => {
     );
   }
 
+  // Renderiza app normalmente
   return (
     <UserContext.Provider value={{ user, setUser, login, logout }}>
       {children}

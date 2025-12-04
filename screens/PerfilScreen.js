@@ -1,3 +1,14 @@
+// ------------------------------------------------------
+//  PERFILSCREEN
+//  Tela de perfil do usuário:
+//   - Exibe dados do usuário logado
+//   - Permite mudar avatar (galeria ou câmera)
+//   - Envia imagem para o Supabase Storage
+//   - Atualiza banco de dados e o contexto do usuário
+//   - Acessa histórico, configurações e carteira
+//   - Permite logout
+// ------------------------------------------------------
+
 import React, { useEffect } from 'react';
 import {
   View,
@@ -8,6 +19,7 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
+
 import { useUser } from '../contexts/UserContext';
 import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,15 +27,17 @@ import { supabase } from '../Services/supabase';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function PerfilScreen({ navigation }) {
-  const { user, logout, setUser } = useUser();
-  const { theme } = useTheme();
+  const { user, logout, setUser } = useUser();      // dados do usuário logado
+  const { theme } = useTheme();                    // tema claro/escuro
 
+  // Se não houver usuário logado, redireciona para login
   useEffect(() => {
     if (!user) {
       navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
     }
   }, [user]);
 
+  // Confirmação de logout
   const handleLogout = () => {
     Alert.alert('Sair da conta', 'Tem certeza que deseja sair?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -37,9 +51,11 @@ export default function PerfilScreen({ navigation }) {
     ]);
   };
 
+  // Navegação para telas relacionadas
   const goToHistorico = () => navigation.navigate('Historico');
   const goToSettings = () => navigation.navigate('Settings');
 
+  // Selecionar imagem da galeria
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permission.status !== 'granted') {
@@ -50,7 +66,7 @@ export default function PerfilScreen({ navigation }) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],
+      aspect: [1, 1],           // formato quadrado
       quality: 1,
     });
 
@@ -60,6 +76,7 @@ export default function PerfilScreen({ navigation }) {
     }
   };
 
+  // Tirar foto com a câmera
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (permission.status !== 'granted') {
@@ -79,12 +96,14 @@ export default function PerfilScreen({ navigation }) {
     }
   };
 
+  // Upload da imagem para o Supabase Storage
   const uploadImageToSupabase = async (uri) => {
     try {
+      // identifica extensão do arquivo
       const ext = uri.split('.').pop().toLowerCase();
       const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
 
-      // Deleta avatar antigo, se houver
+      // se houver avatar anterior, remove do storage
       if (user?.avatar) {
         const oldFileName = user.avatar.split('/').pop();
         if (oldFileName) {
@@ -92,11 +111,11 @@ export default function PerfilScreen({ navigation }) {
         }
       }
 
-      // Gera novo nome incremental
+      // gera nome único incremental ex: 12.1.png / 12.2.png
       let fileNumber = 1;
       let filePath = `avatars/${user.id}.${fileNumber}.${ext}`;
 
-      // Checa se já existe (precaução)
+      // evita sobrescrever arquivos existentes
       while (true) {
         const { data: existingFile } = await supabase.storage
           .from('avatars')
@@ -107,10 +126,11 @@ export default function PerfilScreen({ navigation }) {
         filePath = `avatars/${user.id}.${fileNumber}.${ext}`;
       }
 
-      // Upload
+      // converte imagem para ArrayBuffer
       const response = await fetch(uri);
       const arrayBuffer = await response.arrayBuffer();
 
+      // faz upload
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, arrayBuffer, {
@@ -120,6 +140,7 @@ export default function PerfilScreen({ navigation }) {
 
       if (uploadError) throw uploadError;
 
+      // pega URL pública do arquivo enviado
       const { data: publicUrlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
@@ -132,6 +153,7 @@ export default function PerfilScreen({ navigation }) {
     }
   };
 
+  // Atualiza tabela usuarios e o contexto com o novo avatar
   const updateUserAvatar = async (avatarUrl) => {
     try {
       const { error } = await supabase
@@ -141,6 +163,7 @@ export default function PerfilScreen({ navigation }) {
 
       if (error) throw error;
 
+      // atualiza dados no contexto localmente
       setUser({ ...user, avatar: avatarUrl });
     } catch (error) {
       console.error('Erro ao atualizar avatar:', error.message);
@@ -154,6 +177,8 @@ export default function PerfilScreen({ navigation }) {
         { backgroundColor: theme.mode === 'dark' ? '#1a1a1a' : '#ffe8e0' },
       ]}
     >
+
+      {/* Background curvo do topo */}
       <View
         style={[
           styles.headerBackground,
@@ -161,15 +186,22 @@ export default function PerfilScreen({ navigation }) {
         ]}
       />
 
+      {/* Card principal do perfil */}
       <View
         style={[
           styles.profileCard,
           { backgroundColor: theme.mode === 'dark' ? '#2b2b2b' : '#fff' },
         ]}
       >
+
+        {/* Avatar do usuário */}
         <View style={[styles.imageContainer, theme.mode === 'dark' ? {borderColor:'#3220d0'} : {borderColor:'#FF7043'}]}>
           {user?.avatar ? (
-            <Image source={{ uri: user.avatar }} style={[styles.profileImage]} resizeMode="cover" />
+            <Image
+              source={{ uri: user.avatar }}
+              style={styles.profileImage}
+              resizeMode="cover"
+            />
           ) : (
             <MaterialIcons
               name="account-circle"
@@ -179,34 +211,21 @@ export default function PerfilScreen({ navigation }) {
           )}
         </View>
 
+        {/* Botões de trocar foto */}
         <TouchableOpacity onPress={pickImage}>
-          <Text
-            style={[
-              styles.actionText,
-              { color: theme.mode === 'dark' ? '#8a61ff' : '#FF7043' },
-            ]}
-          >
+          <Text style={[styles.actionText, { color: theme.mode === 'dark' ? '#8a61ff' : '#FF7043' }]}>
             Alterar Foto de Perfil
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={takePhoto}>
-          <Text
-            style={[
-              styles.actionText,
-              { color: theme.mode === 'dark' ? '#8a61ff' : '#FF7043' },
-            ]}
-          >
+          <Text style={[styles.actionText, { color: theme.mode === 'dark' ? '#8a61ff' : '#FF7043' }]}>
             Tirar Foto
           </Text>
         </TouchableOpacity>
 
-        <Text
-          style={[
-            styles.title,
-            { color: theme.mode === 'dark' ? '#fff' : '#6D4C41' },
-          ]}
-        >
+        {/* Nome + Email */}
+        <Text style={[styles.title, { color: theme.mode === 'dark' ? '#fff' : '#6D4C41' }]}>
           Perfil do Usuário
         </Text>
 
@@ -224,35 +243,68 @@ export default function PerfilScreen({ navigation }) {
             Carregando...
           </Text>
         )}
+
+        {/* Botão carteira */}
         <TouchableOpacity
-          style={[styles.walletButton, theme.mode === 'dark' ? {backgroundColor:'#2a7cee'} : {backgroundColor:'#FFD8A6'}]}
+          style={[
+            styles.walletButton,
+            theme.mode === 'dark' ? { backgroundColor: '#2a7cee' } : { backgroundColor: '#FFD8A6' },
+          ]}
           onPress={() => navigation.navigate('Carteira')}
         >
-          <Ionicons name="wallet" size={20} color={theme.mode === 'dark' ? '#daead7': '#4E342E'} />
-          <Text style={[styles.walletText, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}> Adicionar Saldo</Text>
+          <Ionicons name="wallet" size={20} color={theme.mode === 'dark' ? '#daead7' : '#4E342E'} />
+          <Text style={[styles.walletText, theme.mode === 'dark' ? { color:'#daead7' } : { color:'#4E342E' }]}>
+            Adicionar Saldo
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.historyButton, theme.mode === 'dark' ? {backgroundColor:'#5459ce'} : {backgroundColor:'#fa9778'}]} onPress={goToHistorico}>
-          <FontAwesome5 name="receipt" size={18} color={theme.mode === 'dark' ? '#daead7': '#4E342E'} />
-          <Text style={[styles.historyText, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}> Ver Histórico de Compras</Text>
+        {/* Histórico */}
+        <TouchableOpacity
+          style={[
+            styles.historyButton,
+            theme.mode === 'dark' ? { backgroundColor:'#5459ce'} : { backgroundColor:'#fa9778'},
+          ]}
+          onPress={goToHistorico}
+        >
+          <FontAwesome5 name="receipt" size={18} color={theme.mode === 'dark' ? '#daead7' : '#4E342E'} />
+          <Text style={[styles.historyText, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}>
+            Ver Histórico de Compras
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.settingsButton, theme.mode === 'dark' ? {backgroundColor:'#2a7cee'} : {backgroundColor:'#FFD8A6'}]} onPress={goToSettings}>
-          <Ionicons name="settings" size={20} color={theme.mode === 'dark' ? '#daead7': '#4E342E'} />
-          <Text style={[styles.settingsText, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}> Configurações</Text>
+        {/* Configurações */}
+        <TouchableOpacity
+          style={[
+            styles.settingsButton,
+            theme.mode === 'dark' ? { backgroundColor:'#2a7cee'} : { backgroundColor:'#FFD8A6'},
+          ]}
+          onPress={goToSettings}
+        >
+          <Ionicons name="settings" size={20} color={theme.mode === 'dark' ? '#daead7' : '#4E342E'} />
+          <Text style={[styles.settingsText, theme.mode === 'dark' ? {color:'#daead7'} : {color:'#4E342E'}]}>
+            Configurações
+          </Text>
         </TouchableOpacity>
 
+        {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={20} color="#FFF" />
-          <Text style={[styles.logoutText]}> Sair da Conta</Text>
+          <Text style={styles.logoutText}> Sair da Conta</Text>
         </TouchableOpacity>
+
       </View>
     </ScrollView>
   );
 }
 
+// ------------------------------------------------------
+// ESTILOS
+// ------------------------------------------------------
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
+  // fundo curvado superior
   headerBackground: {
     height: 220,
     borderBottomLeftRadius: 60,
@@ -262,6 +314,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
+
+  // card central do perfil
   profileCard: {
     borderRadius: 20,
     padding: 25,
@@ -273,9 +327,10 @@ const styles = StyleSheet.create({
     marginTop: 100,
     marginHorizontal: 20,
   },
+
+  // avatar
   imageContainer: {
     borderWidth: 3,
-    borderColor: '#FF7043',
     borderRadius: 75,
     padding: 3,
     marginBottom: 10,
@@ -286,6 +341,8 @@ const styles = StyleSheet.create({
     height: 110,
     borderRadius: 55,
   },
+
+  // textos
   actionText: {
     marginBottom: 15,
     fontWeight: 'bold',
@@ -303,9 +360,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 25,
   },
+
+  // botões
   walletButton: {
     flexDirection: 'row',
-    backgroundColor: '#FFD8A6',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -315,13 +373,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   walletText: {
-    color: '#4E342E',
     fontWeight: 'bold',
     fontSize: 16,
   },
+
   historyButton: {
     flexDirection: 'row',
-    backgroundColor: '#fa9778',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -331,13 +388,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   historyText: {
-    color: '#4E342E',
     fontWeight: 'bold',
     fontSize: 16,
   },
+
   settingsButton: {
     flexDirection: 'row',
-    backgroundColor: '#FFCC80',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -347,10 +403,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   settingsText: {
-    color: '#4E342E',
     fontWeight: 'bold',
     fontSize: 16,
   },
+
   logoutButton: {
     flexDirection: 'row',
     backgroundColor: '#E53935',
