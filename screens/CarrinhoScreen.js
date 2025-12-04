@@ -1,4 +1,3 @@
-// CarrinhoScreen.js
 // Tela responsável por exibir os itens do carrinho, aplicar tickets,
 // calcular total final, finalizar a compra e gerar QR Code da compra.
 
@@ -38,18 +37,14 @@ export default function CarrinhoScreen({ navigation }) {
   const { user } = useUser();
   const { theme } = useTheme();
 
-  // ===============================
   // CÁLCULO DO TOTAL FINAL DA COMPRA
   // Exclui do cálculo itens que foram marcados como grátis
-  // ===============================
   const totalFinal = cartItems.reduce((acc, item) => {
     if (itensGratis.includes(item.cartId)) return acc;
     return acc + item.preco * (item.quantidade || 1);
   }, 0);
 
-  // ===============================
-  // Marcar / desmarcar item como grátis via ticket
-  // ===============================
+  // Marcar / desmarcar item como gratis via ticket
   const toggleItemGratis = (id) => {
 
     // Se já está marcado como grátis → desmarca
@@ -68,10 +63,8 @@ export default function CarrinhoScreen({ navigation }) {
     setItensGratis(prev => [...prev, id]);
   };
 
-  // ===============================
   // FINALIZAR COMPRA
   // Salva no Supabase, gera histórico e QR Code
-  // ===============================
   const handleCheckout = async () => {
 
     if (cartItems.length === 0) {
@@ -260,7 +253,7 @@ export default function CarrinhoScreen({ navigation }) {
   );
 }
 
-/* ------------------------ STYLES ------------------------ */
+// ------------------------ STYLES ------------------------ 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 16 },
 

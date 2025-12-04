@@ -40,9 +40,7 @@ export default function SigninScreen({ navigation }) {
     );
   };
 
-  // -----------------------------------------------------------
   // Função principal de cadastro
-  // -----------------------------------------------------------
   async function cadastrarUsuario() {
     // Verifica se todos os campos foram preenchidos
     if (!nome || !email || !senha) {
@@ -102,9 +100,6 @@ export default function SigninScreen({ navigation }) {
     }
   }
 
-  // -----------------------------------------------------------
-  // INTERFACE VISUAL DA TELA DE CADASTRO
-  // -----------------------------------------------------------
 
   return (
     <View

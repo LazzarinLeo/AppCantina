@@ -1,5 +1,3 @@
-// screens/AdicionarCartaoScreen.js
-
 // Importa ferramentas do React e React Native
 import React, { useState } from 'react';
 import {

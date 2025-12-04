@@ -19,12 +19,12 @@ import { supabase } from '../Services/supabase';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-// Serviços
+// Servicos
 import { listarCartoes, removerCartao } from '../Services/cartaoService';
 
 export default function CarteiraScreen({ navigation }) {
 
-  // Pegando usuário atual
+  // Pegando usuario atual
   const { user } = useUser();
   const usuarioId = user?.id;
 
@@ -39,10 +39,8 @@ export default function CarteiraScreen({ navigation }) {
   const [formaSelecionada, setFormaSelecionada] = useState(null);
   const [cartoes, setCartoes] = useState([]);
 
-  // =================================================
   // Executado toda vez que a tela volta ao foco
   // Assim, garante que lista cartões atualizados
-  // =================================================
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       carregarCartoes();
@@ -50,7 +48,7 @@ export default function CarteiraScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  // Função que busca cartões do usuário
+  // Função que busca cartoes do usuário
   async function carregarCartoes() {
     if (!usuarioId) return;
 
@@ -64,12 +62,10 @@ export default function CarteiraScreen({ navigation }) {
     setCartoes(data || []);
   }
 
-  // =================================================
   // Adicionar saldo à carteira via Supabase
-  // =================================================
   async function adicionarSaldo() {
 
-    // Converte String → Número
+    // Converte String → Numero
     const valorNumerico = parseFloat(valor.replace(',', '.'));
 
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
@@ -111,9 +107,7 @@ export default function CarteiraScreen({ navigation }) {
     }
   }
 
-  // =================================================
   // Remover cartão salvo
-  // =================================================
   async function handleRemoverCartao(id) {
     Alert.alert('Remover', 'Deseja remover este cartão?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -266,9 +260,7 @@ export default function CarteiraScreen({ navigation }) {
   );
 }
 
-// =================================================
 // Estilos com suporte ao tema dark/light
-// =================================================
 function makeStyles(theme) {
   return StyleSheet.create({
     container: {

@@ -1,5 +1,3 @@
-// ------------------------------------------------------
-//  PERFILSCREEN
 //  Tela de perfil do usuário:
 //   - Exibe dados do usuário logado
 //   - Permite mudar avatar (galeria ou câmera)
@@ -7,7 +5,6 @@
 //   - Atualiza banco de dados e o contexto do usuário
 //   - Acessa histórico, configurações e carteira
 //   - Permite logout
-// ------------------------------------------------------
 
 import React, { useEffect } from 'react';
 import {
@@ -296,10 +293,6 @@ export default function PerfilScreen({ navigation }) {
     </ScrollView>
   );
 }
-
-// ------------------------------------------------------
-// ESTILOS
-// ------------------------------------------------------
 
 const styles = StyleSheet.create({
   container: { flex: 1 },

@@ -27,9 +27,7 @@ export default function HistoricoScreen() {
     if (user) carregarHistorico();
   }, [user]);
 
-  // -------------------------------------------
   // Função responsável por buscar o histórico
-  // -------------------------------------------
   const carregarHistorico = async () => {
     try {
       setLoading(true);
@@ -73,10 +71,7 @@ export default function HistoricoScreen() {
       [id]: !prev[id], // alterna entre true/false
     }));
   };
-
-  // -------------------------------------------------------
   // TELAS DE CARREGAMENTO OU LISTA VAZIA
-  // -------------------------------------------------------
 
   if (loading) {
     return (
@@ -110,9 +105,7 @@ export default function HistoricoScreen() {
     );
   }
 
-  // -------------------------------------------------------
   // LISTA PRINCIPAL (HISTÓRICO)
-  // -------------------------------------------------------
 
   return (
     <View
@@ -201,11 +194,6 @@ export default function HistoricoScreen() {
     </View>
   );
 }
-
-// -------------------------------------------------------
-// ESTILOS DA TELA
-// -------------------------------------------------------
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

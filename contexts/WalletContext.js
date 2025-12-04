@@ -93,7 +93,7 @@ export const WalletProvider = ({ usuarioId, children }) => {
       incrementarTicket();
     }, 24 * 60 * 60 * 1000);
 
-    // Escuta atualizações em tempo real
+    // Escuta atualizaçoes em tempo real
     const canal = supabase
       .channel(`carteira_realtime_${usuarioId}`)
       .on(

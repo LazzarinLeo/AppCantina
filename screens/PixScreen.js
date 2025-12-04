@@ -35,7 +35,7 @@ export default function PixScreen() {
       return;
     }
 
-    // PIX simples (fictício, mas aceita no app do banco)
+    // PIX simples (fictício, mas aceita no app do banco, caso for utlizar)
     const copiaECola = `00020126580014BR.GOV.BCB.PIX0136chavePixAqui520400005303986540${Number(
       Number(numeric).toFixed(2)
     ).toString()}5802BR5925Nome do Recebedor6009CIDADE62070503***6304ABCD`;

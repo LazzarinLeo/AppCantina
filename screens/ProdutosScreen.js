@@ -54,9 +54,7 @@ export default function ProdutosScreen() {
   const heartScales = useRef({}).current;
   const buttonScales = useRef({}).current;
 
-  // -------------------------------------------------------------
   // Carrega favoritos do AsyncStorage ao abrir a tela
-  // -------------------------------------------------------------
   useEffect(() => {
     const loadFavoritos = async () => {
       if (!user?.id) return;
@@ -66,33 +64,25 @@ export default function ProdutosScreen() {
     loadFavoritos();
   }, [user]);
 
-  // -------------------------------------------------------------
   // Salva favoritos sempre que modificados
-  // -------------------------------------------------------------
   useEffect(() => {
     if (!user?.id) return;
     AsyncStorage.setItem(`favoritos_${user.id}`, JSON.stringify(favoritos));
   }, [favoritos, user]);
 
-  // -------------------------------------------------------------
   // Pega animação individual para cada produto (coração)
-  // -------------------------------------------------------------
   const getHeartScale = (id) => {
     if (!heartScales[id]) heartScales[id] = new Animated.Value(1);
     return heartScales[id];
   };
 
-  // -------------------------------------------------------------
   // Pega animação para botão de adicionar ao carrinho
-  // -------------------------------------------------------------
   const getButtonScale = (id) => {
     if (!buttonScales[id]) buttonScales[id] = new Animated.Value(1);
     return buttonScales[id];
   };
 
-  // -------------------------------------------------------------
   // Alterna produto como favorito + anima ancorna
-  // -------------------------------------------------------------
   const toggleFavorito = (id) => {
     const isFav = favoritos.includes(id);
 
@@ -110,10 +100,7 @@ export default function ProdutosScreen() {
       useNativeDriver: true,
     }).start();
   };
-
-  // -------------------------------------------------------------
   // Animação ao pressionar botão de adicionar
-  // -------------------------------------------------------------
   const pressInButton = (id) => {
     Animated.spring(getButtonScale(id), {
       toValue: 0.96,
@@ -128,20 +115,14 @@ export default function ProdutosScreen() {
       useNativeDriver: true,
     }).start();
   };
-
-  // -------------------------------------------------------------
   // RENDERIZAÇÃO DA TELA
-  // -------------------------------------------------------------
   return (
     <View
       style={[
         styles.container,
         { backgroundColor: theme.mode === 'dark' ? '#121212' : '#f8f8f8' },
-      ]}
-    >
-      {/* ------------------------------------------------------ */}
+      ]}>
       {/* CABEÇALHO */}
-      {/* ------------------------------------------------------ */}
       <View
         style={[
           theme.mode === 'dark'
@@ -372,9 +353,6 @@ export default function ProdutosScreen() {
   );
 }
 
-// ---------------------------------------------------------------
-// ESTILOS
-// ---------------------------------------------------------------
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 16 },
 

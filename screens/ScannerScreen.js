@@ -1,9 +1,3 @@
-// ------------------------------------------------------
-//  SCANNERSCREEN (SUPORTE A TEMA + CALLBACK onScan)
-//  Tela usada para leitura de QR Code (simulação)
-//  Se o carrinho enviar um callback onScan, esta tela
-//  retorna o valor escaneado diretamente para ele.
-// ------------------------------------------------------
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
@@ -62,10 +56,6 @@ export default function ScannerScreen({ navigation, route }) {
     </View>
   );
 }
-
-// ------------------------------------------------------
-// ESTILOS
-// ------------------------------------------------------
 
 const styles = StyleSheet.create({
   container: {

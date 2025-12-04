@@ -52,10 +52,6 @@ export default function SettingsScreen({ navigation }) {
   );
 }
 
-// -------------------------------------------------------
-// ESTILOS DA TELA
-// -------------------------------------------------------
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

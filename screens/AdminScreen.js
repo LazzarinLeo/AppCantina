@@ -27,10 +27,10 @@ export default function AdminScreen() {
   const [usuarios, setUsuarios] = useState([]); // Lista de usuários
   const [loading, setLoading] = useState(true);
 
-  const [modalVisible, setModalVisible] = useState(false); // Modal de edição
+  const [modalVisible, setModalVisible] = useState(false); // Modal de ediçao
   const [usuarioAtual, setUsuarioAtual] = useState(null); // Usuário sendo editado
 
-  // Estados para edição
+  // Estados para ediçao
   const [novoNome, setNovoNome] = useState('');
   const [novoEmail, setNovoEmail] = useState('');
   const [ativo, setAtivo] = useState(true);
